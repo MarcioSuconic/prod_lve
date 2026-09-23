@@ -48,6 +48,9 @@ INSTALLED_APPS = [
     'apps.units.unit.apps.UnitConfig',
     'apps.food_ingredients.supplier_food_ingredients.apps.SupplierFoodIngredientsConfig',
     'apps.food_ingredients.food_ingredient.apps.FoodIngredientConfig',
+    'apps.machinerys.machinery_scheduling.apps.MachinerySchedulingConfig',
+    'apps.machinerys.machinery.apps.MachineryConfig',
+
 
 ]
 
