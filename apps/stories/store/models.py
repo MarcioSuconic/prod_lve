@@ -15,6 +15,11 @@ class Store(models.Model):
         verbose_name="atualizado em",
         auto_now=True,
     )
+    
+    active = models.BooleanField(
+        verbose_name="ativo", 
+        default=True
+    )
 
     class Meta:
         db_table = "lve_sto_store"

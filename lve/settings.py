@@ -46,6 +46,9 @@ INSTALLED_APPS = [
     'apps.stories.average_hourly_wage_x_store.apps.AverageHourlyWageXStoreConfig',
     'apps.units.physical_quantity.apps.PhisicalQuantityConfig',
     'apps.units.unit.apps.UnitConfig',
+    'apps.food_ingredients.supplier_food_ingredients.apps.SupplierFoodIngredientsConfig',
+    'apps.food_ingredients.food_ingredient.apps.FoodIngredientConfig',
+
 ]
 
 MIDDLEWARE = [

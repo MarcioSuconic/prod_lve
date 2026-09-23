@@ -23,17 +23,10 @@ class Unit(models.Model):
         blank=False,
         null=False,
     )
-    base_factor = models.DecimalField(
-        verbose_name="fator de conversão em relação à unidade referencial",
-        decimal_places=9,
-        max_digits=21,
-        default=1,
-    )
     is_benchmark = models.BooleanField(
         verbose_name="a unidade é a referencial",
         default=False,
     )
-
     class Meta:
         db_table = "lve_uni_unit"
         verbose_name = "Unidade Física"
@@ -57,5 +50,5 @@ class Unit(models.Model):
             super().save(*args, **kwargs)
     
     def __str__(self):
-        return f"{self.physical_quantity} - {self.symbol} - {self.base_factor}"
+        return f"{self.physical_quantity} - {self.symbol}"
     
