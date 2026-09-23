@@ -39,6 +39,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
+    # my apsp
+    'apps.stories.store.apps.StoreConfig',
+    'apps.stories.electric_power_x_store.apps.ElectricPowerXStoreConfig',
+    'apps.stories.average_hourly_wage_x_store.apps.AverageHourlyWageXStoreConfig',
+    'apps.units.physical_quantity.apps.PhisicalQuantityConfig',
+    'apps.units.unit.apps.UnitConfig',
 ]
 
 MIDDLEWARE = [
