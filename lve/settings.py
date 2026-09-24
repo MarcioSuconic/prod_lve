@@ -40,18 +40,36 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
-    # my apsp
+    # my apps
+    
+    # stories
     'apps.stories.store.apps.StoreConfig',
     'apps.stories.electric_power_x_store.apps.ElectricPowerXStoreConfig',
     'apps.stories.average_hourly_wage_x_store.apps.AverageHourlyWageXStoreConfig',
+    
+    # units
     'apps.units.physical_quantity.apps.PhisicalQuantityConfig',
     'apps.units.unit.apps.UnitConfig',
+    
+    # food_ingredients
     'apps.food_ingredients.supplier_food_ingredients.apps.SupplierFoodIngredientsConfig',
     'apps.food_ingredients.food_ingredient.apps.FoodIngredientConfig',
+    
+    # machinerys
     'apps.machinerys.machinery_scheduling.apps.MachinerySchedulingConfig',
     'apps.machinerys.machinery.apps.MachineryConfig',
-
-
+    
+    #recipe
+    'apps.recipe.base_recipe.apps.BaseRecipeConfig',
+    
+    #product
+    'apps.products.product.apps.ProductConfig',
+    
+    #products_div
+    'apps.products_div.product_category.apps.ProductCategoryConfig',
+    'apps.products_div.product_sub_category.apps.ProductSubCategoryConfig',
+    'apps.products_div.sub_product_type.apps.SubProductTypeConfig',
+    'apps.products_div.sub_product_sub_type.apps.SubProductSubTypeConfig',
 ]
 
 MIDDLEWARE = [
