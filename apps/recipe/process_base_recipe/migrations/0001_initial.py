@@ -12,16 +12,16 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='PhysicalQuantity',
+            name='ProcessBaseRecipe',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('physical_quantity', models.CharField(max_length=48, verbose_name='grandeza física')),
+                ('process_base_recipe', models.CharField(max_length=60)),
             ],
             options={
-                'verbose_name': 'Grandeza Física',
-                'verbose_name_plural': 'Grandezas Físicas',
-                'db_table': 'lve_uni_physical_quantity',
-                'ordering': ['physical_quantity'],
+                'verbose_name': 'Processo da receita base',
+                'verbose_name_plural': 'Processos da receita base',
+                'db_table': 'lve_rec_process_base_recipe',
+                'ordering': ['process_base_recipe'],
             },
         ),
     ]

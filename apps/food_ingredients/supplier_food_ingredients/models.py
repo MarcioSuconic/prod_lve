@@ -2,6 +2,15 @@ from django.db import models
 
 # Create your models here.
 class SupplierFoodIngrdients(models.Model):
+    """
+    Fornecedores de insumos para a produção de produtos
+
+    Args:
+        models (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     supplier = models.CharField(verbose_name="Fornecedor de Insumos", max_length=60, blank=False, null=False)
     
     created_at = models.DateTimeField(

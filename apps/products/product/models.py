@@ -5,6 +5,16 @@ from apps.products_div.product_sub_category.models import ProductSubCategory
 # Create your models here.
 
 class Product(models.Model):
+    """
+    Registro do Produto a ser vendido no estabelecimento.
+    Um produto é constituído de algun(s) sub produtos que são registrados em outra tabela.
+
+    Args:
+        models (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     product = models.CharField(verbose_name="produto", max_length=120, blank=False, null=False)
     description_product = models.CharField(verbose_name="descrição do produto", blank=False, null=False, max_length=600)
     name_menu = models.CharField(verbose_name="nome para o menu", max_length=48, blank=False, null=False)

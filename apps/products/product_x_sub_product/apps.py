@@ -1,5 +1,5 @@
 from django.apps import AppConfig
 
 
-class ProdutoXSubProdutoConfig(AppConfig):
-    name = 'product_x_sub_product'
+class ProductXSubProductConfig(AppConfig):
+    name = 'apps.products.product_x_sub_product'

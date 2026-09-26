@@ -5,6 +5,17 @@ from apps.stories.store.models import Store
 
 # Create your models here.
 class Machinery(models.Model):
+    
+    """
+    Maquinário para a feitura de produtos.
+
+    Args:
+        models (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    
     machinery = models.CharField(verbose_name="maquinário", max_length=96)
     description = models.CharField(verbose_name="descrição completa", max_length=600)
     qtde_power = models.DecimalField(verbose_name="potência do maquinário", decimal_places=2, max_digits=8)

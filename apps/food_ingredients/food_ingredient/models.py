@@ -5,6 +5,15 @@ from apps.food_ingredients.supplier_food_ingredients.models import SupplierFoodI
 # Create your models here.
 
 class FoodIngredient(models.Model):
+    """
+    Ingredientes para ser inclusa na receita.
+    
+    Args:
+        models (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     food_ingredient = models.CharField(verbose_name="insumos", max_length=120, blank=False, null=False)
     description = models.CharField(verbose_name="descrição minuciosa do insumo", max_length=600, blank=False, null=False)
     qtde_default_shopping = models.DecimalField(verbose_name="qtde padrão para compra", max_digits=8, decimal_places=2)

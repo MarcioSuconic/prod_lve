@@ -3,6 +3,16 @@ from apps.machinerys.machinery.models import Machinery
 # Create your models here.
 
 class MachineryScheduling(models.Model):
+    """
+    Agendamento do Maquinário para a feitura de produtos.
+    Agendaemnto se deve para ver a ocupação do maquinário no espaço-tempo
+
+    Args:
+        models (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     machinery = models.ForeignKey(Machinery, verbose_name="maquinário", on_delete=models.PROTECT, blank=False, null=False)
     datetime_initial = models.DateTimeField(verbose_name="Data e horário inicial")
     datetime_finish = models.DateTimeField(verbose_name="Data e horário final")

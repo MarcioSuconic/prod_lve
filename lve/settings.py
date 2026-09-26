@@ -61,15 +61,26 @@ INSTALLED_APPS = [
     
     #recipe
     'apps.recipe.base_recipe.apps.BaseRecipeConfig',
-    
+    'apps.recipe.stage_base_recipe.apps.StageBaseRecipeConfig',
+    'apps.recipe.process_base_recipe.apps.ProcessBaseRecipeConfig',
+    'apps.recipe.execution_process_base_recipe.apps.ExecutionProcessBaseRecipeConfig',
+   
     #product
     'apps.products.product.apps.ProductConfig',
+    'apps.products.product_x_sub_product.apps.ProductXSubProductConfig',
+    'apps.products.product_production.apps.ProducaoProdutoConfig',
+    
+    # sub product
+    'apps.sub_products.sub_product.apps.SubProdutoConfig',    
     
     #products_div
     'apps.products_div.product_category.apps.ProductCategoryConfig',
     'apps.products_div.product_sub_category.apps.ProductSubCategoryConfig',
     'apps.products_div.sub_product_type.apps.SubProductTypeConfig',
     'apps.products_div.sub_product_sub_type.apps.SubProductSubTypeConfig',
+    
+    # production
+    'apps.productions.register_production_sub_product.apps.RegisterProductionSubProductsConfig',
 ]
 
 MIDDLEWARE = [
