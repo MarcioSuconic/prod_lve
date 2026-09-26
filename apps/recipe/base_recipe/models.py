@@ -1,3 +1,4 @@
+#/home/marcio/Desktop/projetos/app_prod_lve/apps/recipe/execution_process_base_recipe/models.py
 from django.db import models
 from apps.units.unit.models import Unit
 
@@ -17,5 +18,4 @@ class BaseRecipe(models.Model):
         
     def __str__(self):
         return self.base_recipe
-    
     

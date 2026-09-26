@@ -1,3 +1,5 @@
+#/home/marcio/Desktop/projetos/app_prod_lve/apps/stories/electric_power_x_store/models.py
+
 from django.db import models
 from apps.stories.store.models import Store
 

@@ -1,3 +1,4 @@
+# /home/marcio/Desktop/projetos/app_prod_lve/apps/productions/register_production_sub_product/models.py
 from django.db import models
 from apps.sub_products.sub_product.models import SubProduct
 
@@ -38,7 +39,8 @@ class FeedBackProductionSubProdcts(models.Model):
     feedback = models.TextField(verbose_name="Retorno da Produção de Sub produtos")
 
     def __str__(self):
-        return self.register_production_sub_product
+        return f"{self.register_production_sub_product}"
+
     class Meta:
         ordering = ['register_production_sub_product']
         db_table = "lve_pro_feedback_production_sub_product"

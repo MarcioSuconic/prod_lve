@@ -1,3 +1,4 @@
+# /home/marcio/Desktop/projetos/app_prod_lve/apps/products_div/sub_product_type/models.py
 from django.db import models
 
 # Create your models here.
@@ -11,4 +12,4 @@ class SubProductType(models.Model):
         verbose_name_plural = "Tipos de Sub Produtos"
         
     def __str__(self):
-        return self.type
+        return self.sub_product_type

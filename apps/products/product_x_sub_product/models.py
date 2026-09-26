@@ -1,3 +1,4 @@
+# /home/marcio/Desktop/projetos/app_prod_lve/apps/products/product_x_sub_product/models.py
 from django.db import models
 from apps.sub_products.sub_product.models import SubProduct
 from apps.products.product.models import Product

@@ -1,3 +1,4 @@
+#/home/marcio/Desktop/projetos/app_prod_lve/apps/recipe/execution_process_base_recipe/models.py
 from django.db import models
 from apps.food_ingredients.food_ingredient.models import FoodIngredient
 from apps.units.unit.models import Unit
@@ -27,7 +28,7 @@ class ExecutionProcessBaseRecipe(models.Model):
     process_execution = models.ForeignKey(ProcessBaseRecipe, on_delete=models.PROTECT, verbose_name="processo da execução")
     
     # tempo decorrido
-    elapsed_time = models.TimeField(verbose_name="tempo decorrido")
+    elapsed_time = models.TimeField(verbose_name="tempo decorrido", blank=False, null=False)
     
     class Meta:
         ordering = ["base_recipe","stage_execution","process_execution"]

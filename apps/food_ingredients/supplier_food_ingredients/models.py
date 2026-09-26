@@ -1,7 +1,8 @@
+#/home/marcio/Desktop/projetos/app_prod_lve/apps/food_ingredients/supplier_food_ingredients/models.py
 from django.db import models
 
 # Create your models here.
-class SupplierFoodIngrdients(models.Model):
+class SupplierFoodIngredients(models.Model):
     """
     Fornecedores de insumos para a produção de produtos
 

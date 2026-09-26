@@ -1,3 +1,4 @@
+#/home/marcio/Desktop/projetos/app_prod_lve/apps/machinerys/machinery_scheduling/models.py
 from django.db import models
 from apps.machinerys.machinery.models import Machinery
 # Create your models here.

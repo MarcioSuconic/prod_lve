@@ -1,3 +1,4 @@
+#/home/marcio/Desktop/projetos/app_prod_lve/apps/sub_products/sub_product/models.py
 from django.db import models
 from apps.products_div.sub_product_sub_type.models import SubProductSubType
 from apps.recipe.base_recipe.models import BaseRecipe

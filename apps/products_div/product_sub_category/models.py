@@ -1,3 +1,4 @@
+#/home/marcio/Desktop/projetos/app_prod_lve/apps/products_div/product_sub_category/models.py
 from django.db import models
 from apps.products_div.product_category.models import ProductCategory
 
