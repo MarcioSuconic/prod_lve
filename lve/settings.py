@@ -40,6 +40,10 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
+    # terceiros
+    "rest_framework",
+    "django_filters",
+
     # stories
     "apps.stories.store.apps.StoreConfig",
     "apps.stories.electric_power_x_store.apps.ElectricPowerXStoreConfig",
@@ -52,6 +56,7 @@ INSTALLED_APPS = [
     # food_ingredients
     "apps.food_ingredients.supplier_food_ingredients.apps.SupplierFoodIngredientsConfig",
     "apps.food_ingredients.food_ingredient.apps.FoodIngredientConfig",
+    "apps.food_ingredients.food_ingredient_density.apps.FoodIngredientDensityConfig",
 
     # machinerys
     "apps.machinerys.machinery_scheduling.apps.MachinerySchedulingConfig",
@@ -151,6 +156,30 @@ USE_TZ = True
 # Arquivos estáticos
 # ---------------------------------------------------------------------------
 STATIC_URL = "/static/"
+
+
+# ---------------------------------------------------------------------------
+# Django REST Framework
+# ---------------------------------------------------------------------------
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 50,
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",
+        "rest_framework.filters.SearchFilter",
+        "rest_framework.filters.OrderingFilter",
+    ],
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework.renderers.JSONRenderer",
+        "rest_framework.renderers.BrowsableAPIRenderer",
+    ],
+}
 
 
 # ---------------------------------------------------------------------------

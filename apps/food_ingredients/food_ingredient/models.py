@@ -1,4 +1,5 @@
 #/home/marcio/Desktop/projetos/app_prod_lve/apps/food_ingredients/food_ingredient/models.py
+from django.core.exceptions import ValidationError
 from django.db import models
 from apps.units.unit.models import Unit
 from apps.food_ingredients.supplier_food_ingredients.models import SupplierFoodIngredients
@@ -35,6 +36,27 @@ class FoodIngredient(models.Model):
         verbose_name="ativo", 
         default=True
     )
+    
+    def clean(self):
+        super().clean()
+
+        if not self.unit_id:
+            return
+
+        nome_grandeza = (self.unit.physical_quantity.physical_quantity or "").strip().lower()
+        if nome_grandeza != "volume":
+            return
+
+        if not self.pk:
+            return
+
+        if not self.densities.exists():
+            raise ValidationError({
+                "unit": (
+                    "Insumos com unidade padrão de volume precisam ter "
+                    "ao menos uma densidade cadastrada."
+                ),
+            })
     
     class Meta:
         db_table = "lve_foo_food_ingredients"

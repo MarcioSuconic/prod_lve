@@ -24,7 +24,7 @@ class ElectricPower_x_Store(models.Model):
         verbose_name="unidade da tarifa de energia elétrica",
         default=10,
         on_delete=models.PROTECT,
-        limit_choices_to={"physical_quantity_id": 7},
+        limit_choices_to={"physical_quantity__slug": "tarifa-energia"},
     )
 
     date = models.DateField(verbose_name="data referencial")

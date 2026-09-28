@@ -1,3 +1,9 @@
-from django.shortcuts import render
+from rest_framework import viewsets
 
-# Create your views here.
+from .models import PhysicalQuantity
+from .serializers import PhysicalQuantitySerializer
+
+
+class PhysicalQuantityViewSet(viewsets.ModelViewSet):
+    queryset = PhysicalQuantity.objects.all()
+    serializer_class = PhysicalQuantitySerializer

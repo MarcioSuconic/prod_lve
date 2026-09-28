@@ -1,5 +1,5 @@
-#/home/marcio/Desktop/projetos/app_prod_lve/apps/units/unit/models.py
 from django.db import models, transaction
+
 from apps.units.physical_quantity.models import PhysicalQuantity
 
 
@@ -28,6 +28,18 @@ class Unit(models.Model):
         verbose_name="a unidade é a referencial",
         default=False,
     )
+    conversion_factor = models.DecimalField(
+        verbose_name="fator de conversão para a unidade referencial",
+        max_digits=20,
+        decimal_places=10,
+        default=1,
+        help_text=(
+            "Quantas unidades referenciais (benchmark) equivalem a 1 desta unidade. "
+            "Ex.: se a benchmark de Massa é o grama, então 1 kg tem fator 1000. "
+            "A própria unidade benchmark deve ter fator 1."
+        ),
+    )
+
     class Meta:
         db_table = "lve_uni_unit"
         verbose_name = "Unidade Física"
@@ -39,6 +51,13 @@ class Unit(models.Model):
                 condition=models.Q(is_benchmark=True),
                 name="unique_benchmark_per_physical_quantity",
             ),
+            models.CheckConstraint(
+                condition=(
+                    models.Q(is_benchmark=False)
+                    | models.Q(is_benchmark=True, conversion_factor=1)
+                ),
+                name="benchmark_unit_must_have_factor_one",
+            ),
         ]
 
     def save(self, *args, **kwargs):
@@ -49,7 +68,6 @@ class Unit(models.Model):
                     is_benchmark=True,
                 ).exclude(pk=self.pk).update(is_benchmark=False)
             super().save(*args, **kwargs)
-    
+
     def __str__(self):
         return f"{self.physical_quantity} - {self.symbol}"
-    

@@ -19,10 +19,10 @@ class AverageHourlyWage_x_Store(models.Model):
     
     unit = models.ForeignKey(
         Unit,
-        verbose_name="unidade da tarifa de energia elétrica",
+        verbose_name="unidade do valor médio da hora trabalhada",
         default=11,
         on_delete=models.PROTECT,
-        limit_choices_to={"physical_quantity_id": 8},
+        limit_choices_to={"physical_quantity__slug": "salario-por-hora"},
     )
     
     date = models.DateField(verbose_name="data referencial")

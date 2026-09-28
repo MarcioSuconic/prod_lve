@@ -1,3 +1,4 @@
+#/home/marcio/Desktop/projetos/app_prod_lve/apps/stories/average_hourly_wage_x_store/admin.py
 from django.contrib import admin
 from .models import AverageHourlyWage_x_Store
 
