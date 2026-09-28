@@ -2,20 +2,31 @@
 
 from django.db import models
 from apps.stories.store.models import Store
-
+from apps.units.unit.models import Unit
 
 class ElectricPower_x_Store(models.Model):
+    
     store = models.ForeignKey(
         Store,
         verbose_name="estabelecimento",
         on_delete=models.CASCADE,
         related_name="electric_power_fares",
     )
+    
     fare_amount_kwh = models.DecimalField(
         verbose_name="valor da tarifa da energia elétrica",
         max_digits=12,
         decimal_places=4,
     )
+
+    unit = models.ForeignKey(
+        Unit,
+        verbose_name="unidade da tarifa de energia elétrica",
+        default=10,
+        on_delete=models.PROTECT,
+        limit_choices_to={"physical_quantity_id": 7},
+    )
+
     date = models.DateField(verbose_name="data referencial")
 
     created_at = models.DateTimeField(

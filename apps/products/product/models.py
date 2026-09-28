@@ -22,12 +22,20 @@ class Product(models.Model):
     description_menu = models.CharField(verbose_name="descrição do menu", max_length=120)
     store = models.ForeignKey(Store, on_delete=models.PROTECT, blank=False, null=False)
     sub_category = models.ForeignKey(ProductSubCategory, on_delete=models.PROTECT, blank=False, null=False)
-    
+    created_at = models.DateTimeField(verbose_name="criado em", auto_now_add=True)
+    updated_at = models.DateTimeField(verbose_name="atualizado em", auto_now=True)
+    active = models.BooleanField(verbose_name="ativo", default=True)    
     class Meta:
         db_table = "lve_pro_products"
         ordering = ["product"]
         verbose_name = "Produto"
         verbose_name_plural = "Produtos"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["store", "product"],
+                name="unique_product_per_store",
+            ),
+        ]
         
     def __str__(self):
         return self.product

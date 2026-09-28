@@ -5,7 +5,9 @@ from django.db import models
 
 class ProcessBaseRecipe(models.Model):
     process_base_recipe = models.CharField(max_length=60, blank=False, null=False)
-    
+    created_at = models.DateTimeField(verbose_name="criado em", auto_now_add=True)
+    updated_at = models.DateTimeField(verbose_name="atualizado em", auto_now=True)
+    active = models.BooleanField(verbose_name="ativo", default=True)
     class Meta:
         ordering = ["process_base_recipe"]
         db_table = "lve_rec_process_base_recipe"

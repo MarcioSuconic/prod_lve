@@ -1,3 +1,4 @@
+#/home/marcio/Desktop/projetos/app_prod_lve/lve/settings.py
 """
 URL configuration for lve project.
 
@@ -16,6 +17,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+
+import admin_grouping  # noqa: F401  -> ativa o agrupamento
 
 urlpatterns = [
     path('admin/', admin.site.urls),

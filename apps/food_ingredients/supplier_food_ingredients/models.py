@@ -30,7 +30,7 @@ class SupplierFoodIngredients(models.Model):
     )
     
     class Meta:
-        db_table = "lve_ins_fornecedores_insumos"
+        db_table = "lve_foo_supplier_food_ingredients"
         verbose_name = "Fornecedor de Insumo"
         verbose_name_plural = "Fornecedores de Insumos"
         ordering = ['supplier']

@@ -6,8 +6,10 @@ from django.db import models
 
 class Store(models.Model):
     name_store = models.CharField(verbose_name="nome do estabelecimento", max_length=120, blank=False, null=False)
-    id_store = models.IntegerField(verbose_name="ID da loja no app Principal")
-
+    id_store = models.IntegerField(
+        verbose_name="ID da loja no app principal",
+        unique=True,
+    )
     created_at = models.DateTimeField(
         verbose_name="criado em",
         auto_now_add=True,

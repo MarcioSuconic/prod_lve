@@ -1,5 +1,9 @@
 from django.contrib import admin
-from apps.recipe.stage_base_recipe.models import StageBaseRecipe
+from .models import StageBaseRecipe
 
-# Register your models here.
-admin.site.register(StageBaseRecipe)
+
+@admin.register(StageBaseRecipe)
+class StageBaseRecipeAdmin(admin.ModelAdmin):
+    list_display = ("stage_base_recipe", "active")
+    list_filter = ("active",)
+    search_fields = ("stage_base_recipe",)

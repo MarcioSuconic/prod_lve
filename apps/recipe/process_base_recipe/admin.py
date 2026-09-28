@@ -1,5 +1,9 @@
 from django.contrib import admin
-from apps.recipe.process_base_recipe.models import ProcessBaseRecipe
+from .models import ProcessBaseRecipe
 
-# Register your models here.
-admin.site.register(ProcessBaseRecipe)
+
+@admin.register(ProcessBaseRecipe)
+class ProcessBaseRecipeAdmin(admin.ModelAdmin):
+    list_display = ("process_base_recipe", "active")
+    list_filter = ("active",)
+    search_fields = ("process_base_recipe",)

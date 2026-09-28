@@ -7,7 +7,9 @@ class ProductSubCategory(models.Model):
     category = models.ForeignKey(ProductCategory, verbose_name="categoria do produto", on_delete=models.PROTECT, blank=False, null=False)
     sub_category = models.CharField(verbose_name="sub categoria do produto", max_length=60, blank=False, null=False)
     description_menu = models.CharField(verbose_name="descrição para o menu", blank=False, null=False, max_length=120)
-    
+    created_at = models.DateTimeField(verbose_name="criado em", auto_now_add=True)
+    updated_at = models.DateTimeField(verbose_name="atualizado em", auto_now=True)
+    active = models.BooleanField(verbose_name="ativo", default=True)    
     class Meta:
         db_table = "lve_pdv_product_sub_category"
         ordering = ['sub_category']

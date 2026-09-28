@@ -44,6 +44,12 @@ class Machinery(models.Model):
         verbose_name = "Maquinário"
         verbose_name_plural = "Maquinários"
         ordering = ["machinery"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["store", "machinery"],
+                name="unique_machinery_per_store",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.machinery}"

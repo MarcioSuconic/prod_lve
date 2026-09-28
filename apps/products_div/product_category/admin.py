@@ -1,5 +1,9 @@
 from django.contrib import admin
-from apps.products_div.product_category.models import ProductCategory
+from .models import ProductCategory
 
-# Register your models here.
-admin.site.register(ProductCategory)
+
+@admin.register(ProductCategory)
+class ProductCategoryAdmin(admin.ModelAdmin):
+    list_display = ("category", "active")
+    list_filter = ("active",)
+    search_fields = ("category",)

@@ -1,6 +1,7 @@
 #/home/marcio/Desktop/projetos/app_prod_lve/apps/stories/average_hourly_wage_x_store/models.py
 from django.db import models
 from apps.stories.store.models import Store
+from apps.units.unit.models import Unit
 
 
 class AverageHourlyWage_x_Store(models.Model):
@@ -15,6 +16,15 @@ class AverageHourlyWage_x_Store(models.Model):
         max_digits=12,
         decimal_places=4,
     )
+    
+    unit = models.ForeignKey(
+        Unit,
+        verbose_name="unidade da tarifa de energia elétrica",
+        default=11,
+        on_delete=models.PROTECT,
+        limit_choices_to={"physical_quantity_id": 8},
+    )
+    
     date = models.DateField(verbose_name="data referencial")
 
     created_at = models.DateTimeField(

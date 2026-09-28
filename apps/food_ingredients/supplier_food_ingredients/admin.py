@@ -1,5 +1,9 @@
 from django.contrib import admin
-from apps.food_ingredients.supplier_food_ingredients.models import SupplierFoodIngredients
-# Register your models here.
+from .models import SupplierFoodIngredients
 
-admin.site.register(SupplierFoodIngredients)
+
+@admin.register(SupplierFoodIngredients)
+class SupplierFoodIngredientsAdmin(admin.ModelAdmin):
+    list_display = ("supplier", "active")
+    list_filter = ("active",)
+    search_fields = ("supplier",)

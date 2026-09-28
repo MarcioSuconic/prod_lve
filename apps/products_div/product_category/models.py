@@ -5,7 +5,9 @@ from django.db import models
 class ProductCategory(models.Model):
     category = models.CharField(verbose_name="categoria do produto", max_length=60, blank=False, null=False)
     description_menu = models.CharField(verbose_name="descrição para o menu", blank=False, null=False, max_length=120)
-    
+    created_at = models.DateTimeField(verbose_name="criado em", auto_now_add=True)
+    updated_at = models.DateTimeField(verbose_name="atualizado em", auto_now=True)
+    active = models.BooleanField(verbose_name="ativo", default=True)    
     class Meta:
         db_table = "lve_pdv_product_category"
         ordering = ['category']

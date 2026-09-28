@@ -1,5 +1,9 @@
 from django.contrib import admin
-from apps.products_div.sub_product_sub_type.models import SubProductSubType
+from .models import SubProductSubType
 
-# Register your models here.
-admin.site.register(SubProductSubType)
+
+@admin.register(SubProductSubType)
+class SubProductSubTypeAdmin(admin.ModelAdmin):
+    list_display = ("sub_product_sub_type", "type", "active")
+    list_filter = ("type", "active")
+    search_fields = ("sub_product_sub_type",)

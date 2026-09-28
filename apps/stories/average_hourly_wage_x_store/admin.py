@@ -1,6 +1,9 @@
 from django.contrib import admin
-from apps.stories.average_hourly_wage_x_store.models import AverageHourlyWage_x_Store
+from .models import AverageHourlyWage_x_Store
 
-admin.site.register(AverageHourlyWage_x_Store)
 
-# Register your models here.
+@admin.register(AverageHourlyWage_x_Store)
+class AverageHourlyWageXStoreAdmin(admin.ModelAdmin):
+    list_display = ("store", "average_hourly_wage", "date")
+    list_filter = ("store", "date")
+    date_hierarchy = "date"

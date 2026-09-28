@@ -20,13 +20,15 @@ class Product_x_Sub_Product(models.Model):
     product = models.ForeignKey(Product, verbose_name="Produto", on_delete=models.PROTECT, null=False, blank=False)
     sub_product = models.ForeignKey(SubProduct, verbose_name="Sub Produto", on_delete=models.PROTECT, null=False, blank=False)
     bakers_percentage = models.DecimalField(verbose_name="percentual do padeiro", max_digits=6, decimal_places=2)
-    
+    created_at = models.DateTimeField(verbose_name="criado em", auto_now_add=True)
+    updated_at = models.DateTimeField(verbose_name="atualizado em", auto_now=True)
+    active = models.BooleanField(verbose_name="ativo", default=True)    
     class Meta:
-        ordering = ["product","sub_product", "bakers_percentage"]
-        db_table = "lve_pro_prduct_x_sub_product"
-        verbose_name = "Produto x Sub-Produto"
+        ordering = ["product", "sub_product", "bakers_percentage"]
+        db_table = "lve_pro_product_x_sub_product"          # corrigido
+        verbose_name = "Produto X Sub-Produto"
         verbose_name_plural = "Produtos X Sub-Produtos"
-    
+
     def __str__(self):
         return f"{self.product} {self.sub_product} {self.bakers_percentage}"
     

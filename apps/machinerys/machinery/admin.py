@@ -1,5 +1,9 @@
 from django.contrib import admin
-from apps.machinerys.machinery.models import Machinery
+from .models import Machinery
 
-# Register your models here.
-admin.site.register(Machinery)
+
+@admin.register(Machinery)
+class MachineryAdmin(admin.ModelAdmin):
+    list_display = ("machinery", "store", "qtde_power", "unit_power", "active")
+    list_filter = ("store", "active")
+    search_fields = ("machinery",)

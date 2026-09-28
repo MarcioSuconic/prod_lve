@@ -37,7 +37,7 @@ class FoodIngredient(models.Model):
     )
     
     class Meta:
-        db_table = "lve_ins_food_ingredients"
+        db_table = "lve_foo_food_ingredients"
         verbose_name = "Insumo"
         verbose_name_plural = "Insumos"
         ordering = ['food_ingredient']
