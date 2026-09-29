@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     "apps.food_ingredients.food_ingredient.apps.FoodIngredientConfig",
     "apps.food_ingredients.food_ingredient_density.apps.FoodIngredientDensityConfig",
     "apps.food_ingredients.food_ingredient_purchase.apps.FoodIngredientPurchaseConfig",
+    "apps.food_ingredients.food_ingredient_portion.apps.FoodIngredientPortionConfig",
 
     # machinerys
     "apps.machinerys.machinery_scheduling.apps.MachinerySchedulingConfig",
@@ -66,8 +67,8 @@ INSTALLED_APPS = [
     # recipe
     "apps.recipe.base_recipe.apps.BaseRecipeConfig",
     "apps.recipe.stage_base_recipe.apps.StageBaseRecipeConfig",
-    "apps.recipe.operation_base_recipe.apps.ProcessBaseRecipeConfig",
-    "apps.recipe.execution_process_base_recipe.apps.ExecutionProcessBaseRecipeConfig",
+    "apps.recipe.operation_base_recipe.apps.OperationBaseRecipeConfig",
+    "apps.recipe.execution_operation_base_recipe.apps.ExecutionOperationBaseRecipeConfig",
 
     # products
     "apps.products.product.apps.ProductConfig",

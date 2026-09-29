@@ -8,7 +8,8 @@ from dataclasses import dataclass
 
 from apps.food_ingredients.food_ingredient.models import FoodIngredient
 from apps.food_ingredients.food_ingredient.services import convert
-from apps.recipe.execution_process_base_recipe.models import ExecutionOperationBaseRecipe
+
+from apps.recipe.execution_operation_base_recipe.models import ExecutionOperationBaseRecipe
 from apps.units.unit.models import Unit
 from apps.units.unit.services import convert_same_quantity
 

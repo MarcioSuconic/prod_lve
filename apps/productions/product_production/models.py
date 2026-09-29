@@ -27,7 +27,7 @@ class RegisterProductionProducts(models.Model):
     ) 
     class Meta:
         ordering = ['product', 'date_production','done']
-        db_table = "lve_pro_register_production_product"
+        db_table = "lve_pdc_production_product"
         verbose_name = "Registro das Produções de Produtos"
     
     def __str__(self):
@@ -57,6 +57,6 @@ class FeedBackProductionProducts(models.Model):          # corrigido
 
     class Meta:
         ordering = ["register_production_product"]
-        db_table = "lve_pro_feedback_production_product"
+        db_table = "lve_pdc_feedback_production_product"
         verbose_name = "FeedBack do registro de Produção"
         verbose_name_plural = "FeedBacks dos Registros de Produção"

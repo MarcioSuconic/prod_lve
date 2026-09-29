@@ -22,8 +22,8 @@ from apps.machinerys.machinery_scheduling.views import MachinerySchedulingViewSe
 
 from apps.recipe.base_recipe.views import BaseRecipeViewSet
 from apps.recipe.stage_base_recipe.views import StageBaseRecipeViewSet
-from apps.recipe.operation_base_recipe.views import ProcessBaseRecipeViewSet
-from apps.recipe.execution_process_base_recipe.views import ExecutionProcessBaseRecipeViewSet
+from apps.recipe.operation_base_recipe.views import OperationBaseRecipeViewSet
+from apps.recipe.execution_operation_base_recipe.views import ExecutionOperationBaseRecipeViewSet
 
 from apps.sub_products.sub_product.views import SubProductViewSet
 
@@ -41,6 +41,10 @@ from apps.productions.sub_product_production.views import (
 
 from apps.food_ingredients.food_ingredient_purchase.views import (
     FoodIngredientPurchaseViewSet,
+)
+
+from apps.food_ingredients.food_ingredient_portion.views import (
+    FoodIngredientPortionViewSet,
 )
 
 router = DefaultRouter()
@@ -79,11 +83,11 @@ router.register("machinery-schedules", MachinerySchedulingViewSet, basename="mac
 # recipe
 router.register("base-recipes", BaseRecipeViewSet, basename="base-recipe")
 router.register("stage-base-recipes", StageBaseRecipeViewSet, basename="stage-base-recipe")
-router.register("process-base-recipes", ProcessBaseRecipeViewSet, basename="process-base-recipe")
+router.register("operation-base-recipes", OperationBaseRecipeViewSet, basename="operation-base-recipe")
 router.register(
-    "execution-process-base-recipes",
-    ExecutionProcessBaseRecipeViewSet,
-    basename="execution-process-base-recipe",
+    "execution-operation-base-recipes",
+    ExecutionOperationBaseRecipeViewSet,
+    basename="execution-operation-base-recipe",
 )
 
 # sub_products
@@ -113,6 +117,12 @@ router.register(
     "feedback-production-sub-products",
     FeedBackProductionSubProductsViewSet,
     basename="feedback-production-sub-product",
+)
+
+router.register(
+    "food-ingredient-portions",
+    FoodIngredientPortionViewSet,
+    basename="food-ingredient-portion",
 )
 
 urlpatterns = router.urls

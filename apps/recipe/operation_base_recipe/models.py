@@ -8,11 +8,12 @@ class OperationBaseRecipe(models.Model):
     created_at = models.DateTimeField(verbose_name="criado em", auto_now_add=True)
     updated_at = models.DateTimeField(verbose_name="atualizado em", auto_now=True)
     active = models.BooleanField(verbose_name="ativo", default=True)
+    
     class Meta:
         ordering = ["operation_base_recipe"]
-        db_table = "lve_rec_process_base_recipe"
-        verbose_name = "Processo da receita base"
-        verbose_name_plural = "Processos da receita base"
+        db_table = "lve_rec_operation_base_recipe"
+        verbose_name = "Operação da receita base"
+        verbose_name_plural = "Operação da receita base"
     
     def __str__(self):
         return self.operation_base_recipe

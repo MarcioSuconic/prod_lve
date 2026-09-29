@@ -28,6 +28,9 @@ GROUP_MAP = {
 
     # Insumos
     "food_ingredient": "Insumos",
+    "food_ingredient_density": "Insumos",
+    "food_ingredient_purchase": "Insumos",
+    "food_ingredient_portion": "Insumos",
     "supplier_food_ingredients": "Insumos",
 
     # Maquinário
