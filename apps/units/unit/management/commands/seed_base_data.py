@@ -19,6 +19,7 @@ PHYSICAL_QUANTITIES = [
     ("unidade", "unidade"),
     ("tarifa energia", "tarifa-energia"),
     ("salário por hora", "salario-por-hora"),
+    ("potência", "potencia"),
 ]
 
 
@@ -45,6 +46,8 @@ UNITS = [
 
     ("tarifa energia elétrica", "kwh", "tarifa-energia", True, "1"),
     ("salário por hora", "sph", "salario-por-hora", True, "1"),
+    ("watt", "W", "potencia", True, "1"),
+    ("kilowatt", "kW", "potencia", False, "1000"),    
 ]
 
 

@@ -10,8 +10,7 @@ from .models import Product
 from .serializers import ProductSerializer
 from .services import scale_product, ScalingError
 
-from .services import scale_product, ingredient_cost, ScalingError
-
+from .services import scale_product, ingredient_cost, full_cost, ScalingError
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.select_related(
@@ -86,7 +85,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         """
         GET /api/products/{id}/cost/?quantity=10&unit=8
 
-        Retorna o custo dos insumos para produzir `quantity` do produto.
+        Custo completo: insumos + energia + salário.
         """
         product = self.get_object()
 
@@ -114,14 +113,12 @@ class ProductViewSet(viewsets.ModelViewSet):
             )
 
         try:
-            costs = ingredient_cost(product, quantity, unit)
+            result = full_cost(product, quantity, unit)
         except ScalingError as e:
-            return Response(
-                {"detail": str(e)},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        total = sum((c.subtotal for c in costs), Decimal("0"))
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+        def _q(value, places="0.0001"):
+            return str(value.quantize(Decimal(places))) if value is not None else None
 
         return Response({
             "product": product.id,
@@ -138,7 +135,19 @@ class ProductViewSet(viewsets.ModelViewSet):
                     "price_per_unit": str(c.price_per_unit),
                     "subtotal": str(c.subtotal),
                 }
-                for c in costs
+                for c in result.ingredients
             ],
-            "ingredients_total": str(total),
+            "ingredients_total": str(result.ingredients_total),
+            "energy": {
+                "total_kwh": str(result.energy.total_kwh),
+                "tariff_per_kwh": str(result.energy.tariff_per_kwh),
+                "total": str(result.energy.total),
+                "steps": result.energy.steps,
+            } if result.energy else None,
+            "labor": {
+                "total_hours": str(result.labor.total_hours),
+                "hourly_wage": str(result.labor.hourly_wage),
+                "total": str(result.labor.total),
+            } if result.labor else None,
+            "grand_total": str(result.grand_total),
         })

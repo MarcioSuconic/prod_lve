@@ -18,6 +18,11 @@ from apps.products.product_x_sub_product.models import Product_x_Sub_Product
 
 from apps.food_ingredients.food_ingredient_purchase.models import FoodIngredientPurchase
 
+from datetime import timedelta
+
+from apps.stories.electric_power_x_store.models import ElectricPower_x_Store
+from apps.stories.average_hourly_wage_x_store.models import AverageHourlyWage_x_Store
+
 
 class ScalingError(Exception):
     """Erro de escalonamento de receita."""
@@ -176,3 +181,162 @@ def ingredient_cost(
         ))
 
     return result
+
+
+# ---------------------------------------------------------------------------
+# Fase 2 — energia e salário
+# ---------------------------------------------------------------------------
+
+@dataclass
+class EnergyCost:
+    total_kwh: Decimal
+    tariff_per_kwh: Decimal
+    total: Decimal
+    steps: list[dict]
+
+
+@dataclass
+class LaborCost:
+    total_hours: Decimal
+    hourly_wage: Decimal
+    total: Decimal
+
+
+@dataclass
+class FullCost:
+    ingredients: list[IngredientCost]
+    ingredients_total: Decimal
+    energy: EnergyCost | None
+    labor: LaborCost | None
+    grand_total: Decimal
+
+
+def _elapsed_seconds(td: timedelta) -> Decimal:
+    return Decimal(str(td.total_seconds()))
+
+
+def _scale_factor_for_subproduct(link, target_quantity, target_unit) -> Decimal:
+    """Fator de escala do subproduto em relação ao tamanho da receita base."""
+    base_recipe = link.sub_product.base_recipe
+    sub_qty = target_quantity * (link.bakers_percentage / Decimal("100"))
+    sub_qty_in_recipe_unit = convert_same_quantity(
+        sub_qty, target_unit, base_recipe.unit_size
+    )
+    return sub_qty_in_recipe_unit / base_recipe.size
+
+
+def full_cost(
+    product: Product,
+    target_quantity: Decimal,
+    target_unit: Unit,
+) -> FullCost:
+    """
+    Custo completo: insumos + energia + salário.
+
+    Energia: por passo com maquinário, `potência(kW) × tempo(h) × tarifa`.
+    Salário: tempo total de execução × valor médio da hora trabalhada.
+    """
+    # 1. Insumos (já temos)
+    ingredients = ingredient_cost(product, target_quantity, target_unit)
+    ingredients_total = sum((c.subtotal for c in ingredients), Decimal("0"))
+
+    # 2. Unidade alvo de potência (kW). Se não existir, energia fica indisponível.
+    kilowatt = Unit.objects.filter(
+        physical_quantity__slug="potencia", unit__iexact="kilowatt"
+    ).first()
+
+    # 3. Acumula tempo total e energia por passo
+    links = (
+        Product_x_Sub_Product.objects
+        .filter(product=product, active=True)
+        .select_related("sub_product", "sub_product__base_recipe", "sub_product__base_recipe__unit_size")
+    )
+
+    total_seconds = Decimal("0")
+    total_kwh = Decimal("0")
+    energy_steps: list[dict] = []
+
+    for link in links:
+        base_recipe = link.sub_product.base_recipe
+        if not base_recipe.size or base_recipe.size <= 0:
+            raise ScalingError(
+                f"Receita base '{base_recipe}' não tem tamanho definido."
+            )
+        scale = _scale_factor_for_subproduct(link, target_quantity, target_unit)
+
+        steps = (
+            ExecutionOperationBaseRecipe.objects
+            .filter(base_recipe=base_recipe)
+            .select_related("machinery", "machinery__unit_power")
+        )
+
+        for step in steps:
+            step_seconds = _elapsed_seconds(step.elapsed_time) * scale
+            total_seconds += step_seconds
+
+            if step.machinery and kilowatt:
+                power_kw = convert_same_quantity(
+                    step.machinery.qtde_power,
+                    step.machinery.unit_power,
+                    kilowatt,
+                )
+                step_hours = step_seconds / Decimal("3600")
+                step_kwh = power_kw * step_hours
+                total_kwh += step_kwh
+                energy_steps.append({
+                    "step": step.description_execution,
+                    "machinery_code": step.machinery.code,
+                    "machinery_name": step.machinery.machinery,
+                    "power_kw": str(power_kw),
+                    "hours": str(step_hours),
+                    "kwh": str(step_kwh),
+                })
+
+    # 4. Tarifa de energia (última registrada para a loja)
+    store = product.store
+    tariff_row = (
+        ElectricPower_x_Store.objects
+        .filter(store=store)
+        .order_by("-date", "-created_at")
+        .first()
+    )
+    if tariff_row is None:
+        energy = None
+    else:
+        energy = EnergyCost(
+            total_kwh=total_kwh,
+            tariff_per_kwh=tariff_row.fare_amount_kwh,
+            total=total_kwh * tariff_row.fare_amount_kwh,
+            steps=energy_steps,
+        )
+
+    # 5. Salário (última média registrada para a loja)
+    wage_row = (
+        AverageHourlyWage_x_Store.objects
+        .filter(store=store)
+        .order_by("-date", "-created_at")
+        .first()
+    )
+    if wage_row is None:
+        labor = None
+    else:
+        hours = total_seconds / Decimal("3600")
+        labor = LaborCost(
+            total_hours=hours,
+            hourly_wage=wage_row.average_hourly_wage,
+            total=hours * wage_row.average_hourly_wage,
+        )
+
+    grand_total = ingredients_total
+    if energy:
+        grand_total += energy.total
+    if labor:
+        grand_total += labor.total
+
+    return FullCost(
+        ingredients=ingredients,
+        ingredients_total=ingredients_total,
+        energy=energy,
+        labor=labor,
+        grand_total=grand_total,
+    )

@@ -18,10 +18,21 @@ class ExecutionOperationBaseRecipeSerializer(serializers.ModelSerializer):
         source="stage_execution.stage_base_recipe",
         read_only=True,
     )
-    process_name = serializers.CharField(
+    operation_name = serializers.CharField(
         source="operation_execution.operation_base_recipe",
         read_only=True,
     )
+    machinery_name = serializers.CharField(
+        source="machinery.machinery",
+        read_only=True,
+        allow_null=True,
+    )
+    machinery_code = serializers.CharField(
+        source="machinery.code",
+        read_only=True,
+        allow_null=True,
+    )
+    utensil_details = serializers.SerializerMethodField()
 
     class Meta:
         model = ExecutionOperationBaseRecipe
@@ -38,17 +49,26 @@ class ExecutionOperationBaseRecipeSerializer(serializers.ModelSerializer):
             "stage_execution",
             "stage_name",
             "operation_execution",
-            "process_name",
+            "operation_name",
             "elapsed_time",
+            "machinery",
+            "machinery_name",
+            "machinery_code",
+            "utensils",
+            "utensil_details",
         )
 
+    def get_utensil_details(self, obj):
+        return [
+            {"id": u.id, "code": u.code, "utensil": u.utensil}
+            for u in obj.utensils.all()
+        ]
+
     def validate(self, attrs):
-        """
-        Roda o clean() do modelo para validar que os três campos de insumo
-        (food_ingredient, qtde, unidade) estejam preenchidos em conjunto.
-        """
         instance = self.instance or ExecutionOperationBaseRecipe()
         for field, value in attrs.items():
+            if field == "utensils":
+                continue  # M2M — não pode setar direto no clean()
             setattr(instance, field, value)
         instance.clean()
         return attrs

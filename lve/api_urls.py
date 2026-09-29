@@ -47,6 +47,8 @@ from apps.food_ingredients.food_ingredient_portion.views import (
     FoodIngredientPortionViewSet,
 )
 
+from apps.machinerys.machinery.views import MachineryViewSet, UtensilViewSet
+
 router = DefaultRouter()
 
 # units
@@ -79,6 +81,7 @@ router.register("average-hourly-wages", AverageHourlyWageXStoreViewSet, basename
 # machinerys
 router.register("machineries", MachineryViewSet, basename="machinery")
 router.register("machinery-schedules", MachinerySchedulingViewSet, basename="machinery-schedule")
+router.register("utensils", UtensilViewSet, basename="utensil")
 
 # recipe
 router.register("base-recipes", BaseRecipeViewSet, basename="base-recipe")
