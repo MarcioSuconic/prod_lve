@@ -6,7 +6,7 @@ from apps.units.unit.models import Unit
 from apps.recipe.base_recipe.models import BaseRecipe
 from apps.recipe.stage_base_recipe.models import StageBaseRecipe
 from apps.recipe.operation_base_recipe.models import OperationBaseRecipe
-from apps.machinerys.machinery.models import Machinery, Utensil   # ajuste o import existente
+from apps.machinerys.machinery.models import Machinery, Utensil
 
 class ExecutionOperationBaseRecipe(models.Model):
     # receita base
