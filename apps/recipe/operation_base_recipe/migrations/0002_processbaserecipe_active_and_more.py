@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('process_base_recipe', '0001_initial'),
+        ('operation_base_recipe', '0001_initial'),
     ]
 
     operations = [

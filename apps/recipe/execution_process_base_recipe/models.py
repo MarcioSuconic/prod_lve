@@ -5,10 +5,10 @@ from apps.food_ingredients.food_ingredient.models import FoodIngredient
 from apps.units.unit.models import Unit
 from apps.recipe.base_recipe.models import BaseRecipe
 from apps.recipe.stage_base_recipe.models import StageBaseRecipe
-from apps.recipe.process_base_recipe.models import ProcessBaseRecipe
+from apps.recipe.operation_base_recipe.models import OperationBaseRecipe
 
 
-class ExecutionProcessBaseRecipe(models.Model):
+class ExecutionOperationBaseRecipe(models.Model):
     # receita base
     base_recipe = models.ForeignKey(
         BaseRecipe,
@@ -57,10 +57,10 @@ class ExecutionProcessBaseRecipe(models.Model):
     )
 
     # processo da execução
-    process_execution = models.ForeignKey(
-        ProcessBaseRecipe,
+    operation_execution = models.ForeignKey(
+        OperationBaseRecipe,
         on_delete=models.PROTECT,
-        verbose_name="processo da execução",
+        verbose_name="operação da execução",
     )
 
     # tempo decorrido
@@ -69,7 +69,7 @@ class ExecutionProcessBaseRecipe(models.Model):
     )
 
     class Meta:
-        ordering = ["base_recipe", "stage_execution", "process_execution"]
+        ordering = ["base_recipe", "stage_execution", "operation_execution"]
         db_table = "lve_rec_execution_process_base_recipe"
         verbose_name = "Execução do Processo da receita base"
         verbose_name_plural = "Execuções dos Processos da receita base"
@@ -91,4 +91,4 @@ class ExecutionProcessBaseRecipe(models.Model):
             )
 
     def __str__(self):
-        return f"{self.base_recipe} - {self.stage_execution} - {self.process_execution}"
+        return f"{self.base_recipe} - {self.stage_execution} - {self.operation_execution}"

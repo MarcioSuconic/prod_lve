@@ -1,7 +1,7 @@
 from django.db import models
 
 from apps.machinerys.machinery.models import Machinery
-from apps.productions.register_production_sub_product.models import (
+from apps.productions.sub_product_production.models import (
     RegisterProductionSubProducts,
 )
 

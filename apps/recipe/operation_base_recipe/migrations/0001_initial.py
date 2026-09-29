@@ -12,16 +12,16 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='ProcessBaseRecipe',
+            name='OperationBaseRecipe',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('process_base_recipe', models.CharField(max_length=60)),
+                ('operation_base_recipe', models.CharField(max_length=60)),
             ],
             options={
                 'verbose_name': 'Processo da receita base',
                 'verbose_name_plural': 'Processos da receita base',
                 'db_table': 'lve_rec_process_base_recipe',
-                'ordering': ['process_base_recipe'],
+                'ordering': ['operation_base_recipe'],
             },
         ),
     ]

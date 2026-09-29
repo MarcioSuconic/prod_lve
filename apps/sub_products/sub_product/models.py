@@ -6,6 +6,7 @@ from apps.recipe.base_recipe.models import BaseRecipe
 # Create your models here.
 
 class SubProduct(models.Model):
+    
     """
     Sub Produto de um Produto.
     Um sub produto tem que ter um Produto. O produto pode ter vários ou um sub-produto.
@@ -18,12 +19,14 @@ class SubProduct(models.Model):
     Returns:
         _type_: _description_
     """
+    
     sub_product = models.CharField(max_length=60, verbose_name="Sub Produto")
     base_recipe = models.ForeignKey(BaseRecipe, on_delete=models.PROTECT, verbose_name="receita base")
     sub_product_sub_type = models.ForeignKey(SubProductSubType, on_delete=models.PROTECT, verbose_name="Sub Tipo do Sub Produto")
     created_at = models.DateTimeField(verbose_name="criado em", auto_now_add=True)
     updated_at = models.DateTimeField(verbose_name="atualizado em", auto_now=True)
-    active = models.BooleanField(verbose_name="ativo", default=True)    
+    active = models.BooleanField(verbose_name="ativo", default=True)
+    
     class Meta:
         db_table = "lve_spr_sub_product"
         ordering = ["sub_product"]

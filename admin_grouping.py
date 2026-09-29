@@ -37,7 +37,7 @@ GROUP_MAP = {
     # Receita
     "base_recipe": "Receita",
     "stage_base_recipe": "Receita",
-    "process_base_recipe": "Receita",
+    "operation_base_recipe": "Receita",
     "execution_process_base_recipe": "Receita",
 
     # Produtos

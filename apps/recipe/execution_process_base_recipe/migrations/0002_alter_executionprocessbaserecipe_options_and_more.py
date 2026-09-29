@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='executionprocessbaserecipe',
-            options={'ordering': ['base_recipe', 'stage_execution', 'process_execution'], 'verbose_name': 'Execução do Processo da receita base', 'verbose_name_plural': 'Execuções dos Processos da receita base'},
+            options={'ordering': ['base_recipe', 'stage_execution', 'operation_execution'], 'verbose_name': 'Execução do Processo da receita base', 'verbose_name_plural': 'Execuções dos Processos da receita base'},
         ),
         migrations.AlterField(
             model_name='executionprocessbaserecipe',

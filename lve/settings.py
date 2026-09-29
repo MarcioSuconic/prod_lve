@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     "apps.food_ingredients.supplier_food_ingredients.apps.SupplierFoodIngredientsConfig",
     "apps.food_ingredients.food_ingredient.apps.FoodIngredientConfig",
     "apps.food_ingredients.food_ingredient_density.apps.FoodIngredientDensityConfig",
+    "apps.food_ingredients.food_ingredient_purchase.apps.FoodIngredientPurchaseConfig",
 
     # machinerys
     "apps.machinerys.machinery_scheduling.apps.MachinerySchedulingConfig",
@@ -65,13 +66,12 @@ INSTALLED_APPS = [
     # recipe
     "apps.recipe.base_recipe.apps.BaseRecipeConfig",
     "apps.recipe.stage_base_recipe.apps.StageBaseRecipeConfig",
-    "apps.recipe.process_base_recipe.apps.ProcessBaseRecipeConfig",
+    "apps.recipe.operation_base_recipe.apps.ProcessBaseRecipeConfig",
     "apps.recipe.execution_process_base_recipe.apps.ExecutionProcessBaseRecipeConfig",
 
     # products
     "apps.products.product.apps.ProductConfig",
-    "apps.products.product_x_sub_product.apps.ProductXSubProductConfig",
-    "apps.products.product_production.apps.ProducaoProdutoConfig",
+    "apps.products.product_x_sub_product.apps.ProductXSubProductConfig",    
 
     # sub_products
     "apps.sub_products.sub_product.apps.SubProdutoConfig",
@@ -83,8 +83,9 @@ INSTALLED_APPS = [
     "apps.products_div.sub_product_sub_type.apps.SubProductSubTypeConfig",
 
     # productions
-    "apps.productions.register_production_sub_product.apps.RegisterProductionSubProductsConfig",
-]
+    "apps.productions.sub_product_production.apps.RegisterProductionSubProductsConfig",
+    "apps.productions.product_production.apps.ProductProductionsConfig",
+    ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

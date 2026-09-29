@@ -1,3 +1,23 @@
-from django.shortcuts import render
+from rest_framework import viewsets
 
-# Create your views here.
+from .models import ExecutionOperationBaseRecipe
+from .serializers import ExecutionProcessBaseRecipeSerializer
+
+
+class ExecutionProcessBaseRecipeViewSet(viewsets.ModelViewSet):
+    queryset = ExecutionOperationBaseRecipe.objects.select_related(
+        "base_recipe",
+        "food_ingredient",
+        "unidade_qtde_food_ingredient",
+        "stage_execution",
+        "operation_execution",
+    ).all()
+    serializer_class = ExecutionProcessBaseRecipeSerializer
+    filterset_fields = (
+        "base_recipe",
+        "stage_execution",
+        "operation_execution",
+        "food_ingredient",
+    )
+    search_fields = ("description_execution",)
+    ordering_fields = ("base_recipe", "stage_execution", "operation_execution")

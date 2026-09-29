@@ -2,4 +2,4 @@ from django.apps import AppConfig
 
 
 class RegisterProductionSubProductsConfig(AppConfig):
-    name = 'apps.productions.register_production_sub_product'
+    name = 'apps.productions.sub_product_production'

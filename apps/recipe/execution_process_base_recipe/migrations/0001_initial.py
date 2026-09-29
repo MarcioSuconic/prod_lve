@@ -11,14 +11,14 @@ class Migration(migrations.Migration):
     dependencies = [
         ('base_recipe', '0001_initial'),
         ('food_ingredient', '0001_initial'),
-        ('process_base_recipe', '0001_initial'),
+        ('operation_base_recipe', '0001_initial'),
         ('stage_base_recipe', '0001_initial'),
         ('unit', '0001_initial'),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ExecutionProcessBaseRecipe',
+            name='ExecutionOperationBaseRecipe',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('description_execution', models.CharField(max_length=240, verbose_name='descrição da execução')),
@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
                 ('elapsed_time', models.TimeField(verbose_name='tempo decorrido')),
                 ('base_recipe', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='base_recipe.baserecipe', verbose_name='receita base')),
                 ('food_ingredient', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='food_ingredient.foodingredient', verbose_name='insumo')),
-                ('process_execution', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='process_base_recipe.processbaserecipe', verbose_name='processo da execução')),
+                ('operation_execution', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='operation_base_recipe.processbaserecipe', verbose_name='processo da execução')),
                 ('stage_execution', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='stage_base_recipe.stagebaserecipe', verbose_name='Etapa da execução do produto')),
                 ('unidade_qtde_food_ingredient', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='unit.unit', verbose_name='unidade da qtde de insumo')),
             ],
@@ -35,7 +35,7 @@ class Migration(migrations.Migration):
                 'verbose_name': 'Execução do Processo da receita base',
                 'verbose_name_plural': 'Execução do Processos da receita base',
                 'db_table': 'lve_rec_execution_process_base_recipe',
-                'ordering': ['base_recipe', 'stage_execution', 'process_execution'],
+                'ordering': ['base_recipe', 'stage_execution', 'operation_execution'],
             },
         ),
     ]
