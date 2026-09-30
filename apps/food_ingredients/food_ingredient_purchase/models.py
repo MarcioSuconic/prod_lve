@@ -1,3 +1,4 @@
+#/home/marcio/Desktop/projetos/app_prod_lve/apps/food_ingredients/food_ingredient_purchase/models.py
 from decimal import Decimal
 
 from django.db import models

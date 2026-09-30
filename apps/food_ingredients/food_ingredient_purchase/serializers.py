@@ -1,3 +1,4 @@
+#/home/marcio/Desktop/projetos/app_prod_lve/apps/food_ingredients/food_ingredient_purchase/serializers.py
 from rest_framework import serializers
 
 from .models import FoodIngredientPurchase

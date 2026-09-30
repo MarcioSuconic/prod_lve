@@ -1,3 +1,4 @@
+#/home/marcio/Desktop/projetos/app_prod_lve/apps/food_ingredients/food_ingredient_purchase/admin.py
 from django.contrib import admin
 
 from .models import FoodIngredientPurchase
