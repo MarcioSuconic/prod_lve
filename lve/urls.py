@@ -19,6 +19,7 @@ from django.contrib import admin
 from django.urls import include, path
 
 import admin_grouping  # noqa: F401  -> ativa o agrupamento
+from rest_framework.authtoken.views import obtain_auth_token
 
 urlpatterns = [
     path("admin/", admin.site.urls),

@@ -7,8 +7,8 @@ from .serializers import FoodIngredientPurchaseSerializer
 
 class FoodIngredientPurchaseViewSet(viewsets.ModelViewSet):
     queryset = FoodIngredientPurchase.objects.select_related(
-        "food_ingredient", "unit"
+        "nf", "food_ingredient", "unit"
     ).all()
+    filterset_fields = ("nf", "food_ingredient", "unit", "date")
+    ordering_fields = ("date", "total_price")
     serializer_class = FoodIngredientPurchaseSerializer
-    filterset_fields = ("food_ingredient", "unit", "date")
-    ordering_fields = ("date", "unit_price", "total_price")

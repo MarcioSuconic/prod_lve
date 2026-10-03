@@ -1,3 +1,4 @@
+#/home/marcio/Desktop/projetos/app_prod_lve/apps/recipe/operation_base_recipe/views.py
 from rest_framework import viewsets
 
 from .models import OperationBaseRecipe

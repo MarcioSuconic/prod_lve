@@ -1,3 +1,4 @@
+#/home/marcio/Desktop/projetos/app_prod_lve/apps/food_ingredients/food_ingredient_density/views.py
 from rest_framework import viewsets
 
 from .models import FoodIngredientDensity

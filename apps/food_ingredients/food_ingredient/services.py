@@ -1,3 +1,4 @@
+#/home/marcio/Desktop/projetos/app_prod_lve/apps/food_ingredients/food_ingredient/services.py
 """
 Conversão de quantidades envolvendo insumos.
 
@@ -140,10 +141,22 @@ def _convert_via_portion(
 
     # Procura porção registrada com count_unit OU com a benchmark da mesma
     # grandeza (ex.: porção em "unidade" também serve para converter "dúzia").
-    benchmark_count_unit = Unit.objects.get(
-        physical_quantity=count_unit.physical_quantity,
-        is_benchmark=True,
+    # Procura porção registrada com count_unit OU com a benchmark da mesma
+    # grandeza (ex.: porção em "unidade" também serve para converter "dúzia").
+    benchmark_count_unit = (
+        Unit.objects
+        .filter(
+            physical_quantity=count_unit.physical_quantity,
+            is_benchmark=True,
+        )
+        .first()
     )
+    if benchmark_count_unit is None:
+        raise ConversionError(
+            f"A grandeza '{count_unit.physical_quantity}' não tem "
+            "unidade benchmark."
+        )
+
     candidate_ids = {count_unit.id, benchmark_count_unit.id}
 
     portion = (

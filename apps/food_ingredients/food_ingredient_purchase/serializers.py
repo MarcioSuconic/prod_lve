@@ -19,6 +19,7 @@ class FoodIngredientPurchaseSerializer(serializers.ModelSerializer):
         model = FoodIngredientPurchase
         fields = (
             "id",
+            "nf",
             "food_ingredient",
             "food_ingredient_name",
             "date",

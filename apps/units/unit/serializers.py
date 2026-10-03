@@ -1,3 +1,4 @@
+# /home/marcio/Desktop/projetos/app_prod_lve/apps/units/unit/serializers.py
 from rest_framework import serializers
 
 from .models import Unit

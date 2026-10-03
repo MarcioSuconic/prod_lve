@@ -1,5 +1,8 @@
 from rest_framework.routers import DefaultRouter
 
+from django.urls import path
+from rest_framework.authtoken.views import obtain_auth_token
+
 from apps.units.physical_quantity.views import PhysicalQuantityViewSet
 from apps.units.unit.views import UnitViewSet
 
@@ -47,7 +50,9 @@ from apps.food_ingredients.food_ingredient_portion.views import (
     FoodIngredientPortionViewSet,
 )
 
-from apps.machinerys.machinery.views import MachineryViewSet, UtensilViewSet
+from apps.machinerys.machinery.views import MachineryViewSet
+
+from apps.food_ingredients.nf_purchase.views import NFPurchaseViewSet
 
 router = DefaultRouter()
 
@@ -73,6 +78,11 @@ router.register(
     FoodIngredientPurchaseViewSet,
     basename="food-ingredient-purchase",
 )
+router.register(
+    "nf-purchases",
+    NFPurchaseViewSet,
+    basename="nf-purchase",
+)
 
 # stories extras
 router.register("electric-power-fares", ElectricPowerXStoreViewSet, basename="electric-power-fare")
@@ -81,7 +91,7 @@ router.register("average-hourly-wages", AverageHourlyWageXStoreViewSet, basename
 # machinerys
 router.register("machineries", MachineryViewSet, basename="machinery")
 router.register("machinery-schedules", MachinerySchedulingViewSet, basename="machinery-schedule")
-router.register("utensils", UtensilViewSet, basename="utensil")
+#router.register("utensils", UtensilViewSet, basename="utensil")
 
 # recipe
 router.register("base-recipes", BaseRecipeViewSet, basename="base-recipe")
@@ -128,4 +138,6 @@ router.register(
     basename="food-ingredient-portion",
 )
 
-urlpatterns = router.urls
+urlpatterns = router.urls + [
+    path("api-token-auth/", obtain_auth_token, name="api-token-auth"),
+]

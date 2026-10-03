@@ -1,3 +1,4 @@
+#/home/marcio/Desktop/projetos/app_prod_lve/lve/settings.py
 """
 Django settings for lve project.
 
@@ -42,6 +43,7 @@ INSTALLED_APPS = [
 
     # terceiros
     "rest_framework",
+    "rest_framework.authtoken",
     "django_filters",
 
     # stories
@@ -59,10 +61,16 @@ INSTALLED_APPS = [
     "apps.food_ingredients.food_ingredient_density.apps.FoodIngredientDensityConfig",
     "apps.food_ingredients.food_ingredient_purchase.apps.FoodIngredientPurchaseConfig",
     "apps.food_ingredients.food_ingredient_portion.apps.FoodIngredientPortionConfig",
+    "apps.food_ingredients.nf_purchase.apps.NfPurchaseConfig",
 
     # machinerys
     "apps.machinerys.machinery_scheduling.apps.MachinerySchedulingConfig",
     "apps.machinerys.machinery.apps.MachineryConfig",
+    
+    #utensils
+    "apps.utensils.utensil_scheduling.apps.UtensilSchedulingConfig",
+    "apps.utensils.utensil.apps.UtensilConfig",
+    
 
     # recipe
     "apps.recipe.base_recipe.apps.BaseRecipeConfig",
@@ -166,6 +174,7 @@ STATIC_URL = "/static/"
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.TokenAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",

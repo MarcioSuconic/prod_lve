@@ -1,3 +1,4 @@
+#/home/marcio/Desktop/projetos/app_prod_lve/apps/recipe/execution_operation_base_recipe/models.py
 from django.core.exceptions import ValidationError
 from django.db import models
 
@@ -6,7 +7,8 @@ from apps.units.unit.models import Unit
 from apps.recipe.base_recipe.models import BaseRecipe
 from apps.recipe.stage_base_recipe.models import StageBaseRecipe
 from apps.recipe.operation_base_recipe.models import OperationBaseRecipe
-from apps.machinerys.machinery.models import Machinery, Utensil
+from apps.machinerys.machinery.models import Machinery
+from apps.utensils.utensil.models import Utensil
 
 class ExecutionOperationBaseRecipe(models.Model):
     # receita base
@@ -21,14 +23,16 @@ class ExecutionOperationBaseRecipe(models.Model):
         on_delete=models.PROTECT,
         null=True,
         blank=True,
-        related_name="process_steps",
+        related_name="process_machinery",
         verbose_name="maquinário",
     )
     
-    utensils = models.ManyToManyField(
+    utensils = models.ForeignKey(
         Utensil,
+        on_delete=models.PROTECT,
         blank=True,
-        related_name="process_steps",
+        null=True,
+        related_name="process_utensils",
         verbose_name="utensílios",
     )
 
@@ -78,10 +82,16 @@ class ExecutionOperationBaseRecipe(models.Model):
         on_delete=models.PROTECT,
         verbose_name="operação da execução",
     )
+    
+    execution_time = models.DurationField(
+        verbose_name="tempo de execução (min)",
+        help_text="tempo em minutos",
+    )
 
     # tempo decorrido
     elapsed_time = models.DurationField(
         verbose_name="tempo decorrido",
+        help_text="tempo em minutos",
     )
 
     class Meta:

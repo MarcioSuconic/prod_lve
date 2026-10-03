@@ -5,6 +5,7 @@ from django.db import models
 
 from apps.food_ingredients.food_ingredient.models import FoodIngredient
 from apps.units.unit.models import Unit
+from apps.food_ingredients.nf_purchase.models import NFPurchase
 
 
 class FoodIngredientPurchase(models.Model):
@@ -12,6 +13,15 @@ class FoodIngredientPurchase(models.Model):
     Compra de um insumo. O usuário registra o que comprou (quantidade + unidade)
     e quanto pagou no total. O preço por unidade é derivado, não digitado.
     """
+    
+    nf = models.ForeignKey(
+        NFPurchase,
+        on_delete=models.PROTECT,
+        related_name="items",
+        verbose_name="nf",
+        blank=True,
+        null=True,
+    )
 
     food_ingredient = models.ForeignKey(
         FoodIngredient,
@@ -66,4 +76,4 @@ class FoodIngredientPurchase(models.Model):
         return self.total_price / self.quantity
 
     def __str__(self):
-        return f"{self.food_ingredient} - {self.date} ({self.quantity} {self.unit.symbol})"
+        return f"{self.nf.id} - {self.food_ingredient} - {self.date} ({self.quantity} {self.unit.symbol})"

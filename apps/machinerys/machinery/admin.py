@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Machinery, Utensil
+from apps.machinerys.machinery.models import Machinery
 
 
 @admin.register(Machinery)
@@ -10,8 +10,3 @@ class MachineryAdmin(admin.ModelAdmin):
     search_fields = ("machinery", "code")
 
 
-@admin.register(Utensil)
-class UtensilAdmin(admin.ModelAdmin):
-    list_display = ("code", "utensil", "store", "active")
-    list_filter = ("store", "active")
-    search_fields = ("utensil", "code")

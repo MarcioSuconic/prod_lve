@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 
-from .models import Machinery, Utensil
-from .serializers import MachinerySerializer, UtensilSerializer
+from .models import Machinery
+from .serializers import MachinerySerializer
 
 
 class MachineryViewSet(viewsets.ModelViewSet):
@@ -12,9 +12,3 @@ class MachineryViewSet(viewsets.ModelViewSet):
     ordering_fields = ("machinery", "code", "value_machinery")
 
 
-class UtensilViewSet(viewsets.ModelViewSet):
-    queryset = Utensil.objects.select_related("store").all()
-    serializer_class = UtensilSerializer
-    filterset_fields = ("store", "active")
-    search_fields = ("utensil", "code", "description")
-    ordering_fields = ("utensil", "code")
