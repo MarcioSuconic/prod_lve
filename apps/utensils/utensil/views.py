@@ -1,16 +1,7 @@
-#/home/marcio/Desktop/projetos/app_prod_lve/apps/utensils/utensil/views.py
 from rest_framework import viewsets
 
-from .models import Machinery, Utensil
-from .serializers import MachinerySerializer, UtensilSerializer
-
-
-class MachineryViewSet(viewsets.ModelViewSet):
-    queryset = Machinery.objects.select_related("store", "unit_power").all()
-    serializer_class = MachinerySerializer
-    filterset_fields = ("store", "active")
-    search_fields = ("machinery", "code", "description")
-    ordering_fields = ("machinery", "code", "value_machinery")
+from .models import Utensil
+from .serializers import UtensilSerializer
 
 
 class UtensilViewSet(viewsets.ModelViewSet):
