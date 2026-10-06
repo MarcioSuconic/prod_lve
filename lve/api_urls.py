@@ -1,12 +1,14 @@
-from rest_framework.routers import DefaultRouter
-
+# lve/api_urls.py
 from django.urls import path
 from rest_framework.authtoken.views import obtain_auth_token
+from rest_framework.routers import DefaultRouter
 
 from apps.units.physical_quantity.views import PhysicalQuantityViewSet
 from apps.units.unit.views import UnitViewSet
 
 from apps.stories.store.views import StoreViewSet
+from apps.stories.electric_power_x_store.views import ElectricPowerXStoreViewSet
+from apps.stories.average_hourly_wage_x_store.views import AverageHourlyWageXStoreViewSet
 
 from apps.products_div.product_category.views import ProductCategoryViewSet
 from apps.products_div.product_sub_category.views import ProductSubCategoryViewSet
@@ -16,9 +18,9 @@ from apps.products_div.sub_product_sub_type.views import SubProductSubTypeViewSe
 from apps.food_ingredients.supplier_food_ingredients.views import SupplierFoodIngredientsViewSet
 from apps.food_ingredients.food_ingredient.views import FoodIngredientViewSet
 from apps.food_ingredients.food_ingredient_density.views import FoodIngredientDensityViewSet
-
-from apps.stories.electric_power_x_store.views import ElectricPowerXStoreViewSet
-from apps.stories.average_hourly_wage_x_store.views import AverageHourlyWageXStoreViewSet
+from apps.food_ingredients.food_ingredient_purchase.views import FoodIngredientPurchaseViewSet
+from apps.food_ingredients.food_ingredient_portion.views import FoodIngredientPortionViewSet
+from apps.food_ingredients.nf_purchase.views import NFPurchaseViewSet
 
 from apps.machinerys.machinery.views import MachineryViewSet
 from apps.machinerys.machinery_scheduling.views import MachinerySchedulingViewSet
@@ -36,23 +38,10 @@ from apps.productions.product_production.views import (
     RegisterProductionProductsViewSet,
     FeedBackProductionProductsViewSet,
 )
-
 from apps.productions.sub_product_production.views import (
     RegisterProductionSubProductsViewSet,
     FeedBackProductionSubProductsViewSet,
 )
-
-from apps.food_ingredients.food_ingredient_purchase.views import (
-    FoodIngredientPurchaseViewSet,
-)
-
-from apps.food_ingredients.food_ingredient_portion.views import (
-    FoodIngredientPortionViewSet,
-)
-
-from apps.machinerys.machinery.views import MachineryViewSet
-
-from apps.food_ingredients.nf_purchase.views import NFPurchaseViewSet
 
 from apps.utensils.utensil.views import UtensilViewSet
 
@@ -64,6 +53,8 @@ router.register("units", UnitViewSet, basename="unit")
 
 # stories
 router.register("stores", StoreViewSet, basename="store")
+router.register("electric-power-fares", ElectricPowerXStoreViewSet, basename="electric-power-fare")
+router.register("average-hourly-wages", AverageHourlyWageXStoreViewSet, basename="average-hourly-wage")
 
 # products_div
 router.register("product-categories", ProductCategoryViewSet, basename="product-category")
@@ -75,25 +66,13 @@ router.register("sub-product-sub-types", SubProductSubTypeViewSet, basename="sub
 router.register("suppliers", SupplierFoodIngredientsViewSet, basename="supplier")
 router.register("food-ingredients", FoodIngredientViewSet, basename="food-ingredient")
 router.register("food-ingredient-densities", FoodIngredientDensityViewSet, basename="food-ingredient-density")
-router.register(
-    "food-ingredient-purchases",
-    FoodIngredientPurchaseViewSet,
-    basename="food-ingredient-purchase",
-)
-router.register(
-    "nf-purchases",
-    NFPurchaseViewSet,
-    basename="nf-purchase",
-)
-
-# stories extras
-router.register("electric-power-fares", ElectricPowerXStoreViewSet, basename="electric-power-fare")
-router.register("average-hourly-wages", AverageHourlyWageXStoreViewSet, basename="average-hourly-wage")
+router.register("food-ingredient-purchases", FoodIngredientPurchaseViewSet, basename="food-ingredient-purchase")
+router.register("food-ingredient-portions", FoodIngredientPortionViewSet, basename="food-ingredient-portion")
+router.register("nf-purchases", NFPurchaseViewSet, basename="nf-purchase")
 
 # machinerys
 router.register("machineries", MachineryViewSet, basename="machinery")
 router.register("machinery-schedules", MachinerySchedulingViewSet, basename="machinery-schedule")
-#router.register("utensils", UtensilViewSet, basename="utensil")
 
 # utensils
 router.register("utensils", UtensilViewSet, basename="utensil")
@@ -114,6 +93,8 @@ router.register("sub-products", SubProductViewSet, basename="sub-product")
 # products
 router.register("products", ProductViewSet, basename="product")
 router.register("product-x-sub-products", ProductXSubProductViewSet, basename="product-x-sub-product")
+
+# productions
 router.register(
     "register-production-products",
     RegisterProductionProductsViewSet,
@@ -124,8 +105,6 @@ router.register(
     FeedBackProductionProductsViewSet,
     basename="feedback-production-product",
 )
-
-# productions
 router.register(
     "register-production-sub-products",
     RegisterProductionSubProductsViewSet,
@@ -135,12 +114,6 @@ router.register(
     "feedback-production-sub-products",
     FeedBackProductionSubProductsViewSet,
     basename="feedback-production-sub-product",
-)
-
-router.register(
-    "food-ingredient-portions",
-    FoodIngredientPortionViewSet,
-    basename="food-ingredient-portion",
 )
 
 urlpatterns = router.urls + [

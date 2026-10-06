@@ -1,3 +1,6 @@
+# apps/recipe/base_recipe/views.py
+from datetime import date
+
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -7,6 +10,7 @@ from .serializers import (
     BaseRecipeReplaceSerializer,
     BaseRecipeSerializer,
 )
+from .services import calcular_custo_receita
 
 
 class BaseRecipeViewSet(viewsets.ModelViewSet):
@@ -50,3 +54,23 @@ class BaseRecipeViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(BaseRecipeSerializer(instance).data)
+
+    @action(detail=True, methods=["get"], url_path="cost")
+    def cost(self, request, pk=None):
+        """
+        GET /api/base-recipes/{id}/cost/?data=AAAA-MM-DD
+
+        Devolve o custo detalhado da receita (insumos + energia + mão de obra)
+        por passo e no total. Margem/preço ficam no cliente.
+        """
+        receita = self.get_object()
+        data_str = request.query_params.get("data")
+        try:
+            data_ref = date.fromisoformat(data_str) if data_str else None
+        except ValueError:
+            return Response(
+                {"detail": "Parâmetro 'data' inválido. Use AAAA-MM-DD."},
+                status=400,
+            )
+        resultado = calcular_custo_receita(receita, data_referencia=data_ref)
+        return Response(resultado)

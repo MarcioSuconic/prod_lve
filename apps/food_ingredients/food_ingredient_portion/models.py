@@ -1,3 +1,4 @@
+#/home/marcio/Desktop/projetos/app_prod_lve/apps/food_ingredients/food_ingredient_portion/models.py
 from django.db import models
 
 from apps.food_ingredients.food_ingredient.models import FoodIngredient

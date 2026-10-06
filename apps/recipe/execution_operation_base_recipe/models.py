@@ -11,11 +11,14 @@ from apps.machinerys.machinery.models import Machinery
 from apps.utensils.utensil.models import Utensil
 
 class ExecutionOperationBaseRecipe(models.Model):
+    
     # receita base
     base_recipe = models.ForeignKey(
         BaseRecipe,
         on_delete=models.PROTECT,
+        related_name="execucoes", 
         verbose_name="receita base",
+        
     )
     
     machinery = models.ForeignKey(
