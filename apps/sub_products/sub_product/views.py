@@ -1,3 +1,4 @@
+#/home/marcio/Desktop/projetos/app_prod_lve/apps/sub_products/sub_product/views.py
 from rest_framework import viewsets
 
 from .models import SubProduct

@@ -1,3 +1,4 @@
+#/home/marcio/Desktop/projetos/app_prod_lve/apps/products/product_x_sub_product/serializers.py
 from rest_framework import serializers
 
 from .models import Product_x_Sub_Product
@@ -15,6 +16,6 @@ class ProductXSubProductSerializer(serializers.ModelSerializer):
             "product_name",
             "sub_product",
             "sub_product_name",
-            "bakers_percentage",
+            "composition_percentage",
             "active",
         )

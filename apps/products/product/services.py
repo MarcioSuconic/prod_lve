@@ -1,3 +1,4 @@
+# apps/products/product/services.py
 """
 Escalonamento de receita: dada uma quantidade de produto a produzir,
 calcula quanto de cada insumo é necessário.
@@ -5,23 +6,28 @@ calcula quanto de cada insumo é necessário.
 
 from decimal import Decimal
 from dataclasses import dataclass
+from datetime import timedelta
 
 from apps.food_ingredients.food_ingredient.models import FoodIngredient
 from apps.food_ingredients.food_ingredient.services import convert
+from apps.food_ingredients.food_ingredient_purchase.models import (
+    FoodIngredientPurchase,
+)
 
-from apps.recipe.execution_operation_base_recipe.models import ExecutionOperationBaseRecipe
+from apps.recipe.execution_operation_base_recipe.models import (
+    ExecutionOperationBaseRecipe,
+)
 from apps.units.unit.models import Unit
 from apps.units.unit.services import convert_same_quantity
 
-from .models import Product
+from apps.stories.electric_power_x_store.models import ElectricPower_x_Store
+from apps.stories.average_hourly_wage_x_store.models import (
+    AverageHourlyWage_x_Store,
+)
+
 from apps.products.product_x_sub_product.models import Product_x_Sub_Product
 
-from apps.food_ingredients.food_ingredient_purchase.models import FoodIngredientPurchase
-
-from datetime import timedelta
-
-from apps.stories.electric_power_x_store.models import ElectricPower_x_Store
-from apps.stories.average_hourly_wage_x_store.models import AverageHourlyWage_x_Store
+from .models import Product
 
 
 class ScalingError(Exception):
@@ -53,7 +59,11 @@ def scale_product(
     links = (
         Product_x_Sub_Product.objects
         .filter(product=product, active=True)
-        .select_related("sub_product", "sub_product__base_recipe", "sub_product__base_recipe__unit_size")
+        .select_related(
+            "sub_product",
+            "sub_product__base_recipe",
+            "sub_product__base_recipe__unit_size",
+        )
     )
     if not links.exists():
         raise ScalingError(f"Produto '{product}' não tem subprodutos ativos.")
@@ -71,7 +81,9 @@ def scale_product(
             )
 
         # Quanto deste subproduto o produto final requer
-        sub_qty = target_quantity * (link.bakers_percentage / Decimal("100"))
+        sub_qty = target_quantity * (
+            link.composition_percentage / Decimal("100")
+        )
 
         # Converte sub_qty (target_unit) para a unidade da receita base
         sub_qty_in_recipe_unit = convert_same_quantity(
@@ -110,11 +122,12 @@ def scale_product(
                     quantity=required_qty_in_ingredient_unit,
                     unit=target_ing_unit,
                     unincorporated=step.unincorporated_ingredient,
-                )               
+                )
 
-    return sorted(acumulado.values(), key=lambda x: x.food_ingredient.food_ingredient)
-
-from apps.food_ingredients.food_ingredient_purchase.models import FoodIngredientPurchase
+    return sorted(
+        acumulado.values(),
+        key=lambda x: x.food_ingredient.food_ingredient,
+    )
 
 
 @dataclass
@@ -145,6 +158,7 @@ def _price_per_unit(
     if not qty_in_ingredient_unit:
         return Decimal("0")
     return purchase.total_price / qty_in_ingredient_unit
+
 
 def ingredient_cost(
     product: Product,
@@ -215,12 +229,16 @@ def _elapsed_seconds(td: timedelta) -> Decimal:
     return Decimal(str(td.total_seconds()))
 
 
-def _scale_factor_for_subproduct(link, target_quantity, target_unit) -> Decimal:
+def _scale_factor_for_subproduct(
+    link, target_quantity, target_unit,
+) -> Decimal:
     """Fator de escala do subproduto em relação ao tamanho da receita base."""
     base_recipe = link.sub_product.base_recipe
-    sub_qty = target_quantity * (link.bakers_percentage / Decimal("100"))
+    sub_qty = target_quantity * (
+        link.composition_percentage / Decimal("100")
+    )
     sub_qty_in_recipe_unit = convert_same_quantity(
-        sub_qty, target_unit, base_recipe.unit_size
+        sub_qty, target_unit, base_recipe.unit_size,
     )
     return sub_qty_in_recipe_unit / base_recipe.size
 
@@ -238,7 +256,9 @@ def full_cost(
     """
     # 1. Insumos (já temos)
     ingredients = ingredient_cost(product, target_quantity, target_unit)
-    ingredients_total = sum((c.subtotal for c in ingredients), Decimal("0"))
+    ingredients_total = sum(
+        (c.subtotal for c in ingredients), Decimal("0"),
+    )
 
     # 2. Unidade alvo de potência (kW). Se não existir, energia fica indisponível.
     kilowatt = Unit.objects.filter(
@@ -249,7 +269,11 @@ def full_cost(
     links = (
         Product_x_Sub_Product.objects
         .filter(product=product, active=True)
-        .select_related("sub_product", "sub_product__base_recipe", "sub_product__base_recipe__unit_size")
+        .select_related(
+            "sub_product",
+            "sub_product__base_recipe",
+            "sub_product__base_recipe__unit_size",
+        )
     )
 
     total_seconds = Decimal("0")
@@ -262,7 +286,9 @@ def full_cost(
             raise ScalingError(
                 f"Receita base '{base_recipe}' não tem tamanho definido."
             )
-        scale = _scale_factor_for_subproduct(link, target_quantity, target_unit)
+        scale = _scale_factor_for_subproduct(
+            link, target_quantity, target_unit,
+        )
 
         steps = (
             ExecutionOperationBaseRecipe.objects

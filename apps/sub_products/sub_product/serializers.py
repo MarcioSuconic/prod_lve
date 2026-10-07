@@ -1,3 +1,4 @@
+#/home/marcio/Desktop/projetos/app_prod_lve/apps/sub_products/sub_product/serializers.py
 from rest_framework import serializers
 
 from .models import SubProduct

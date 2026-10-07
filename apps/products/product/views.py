@@ -1,16 +1,22 @@
+# apps/products/product/views.py
+from datetime import date
 from decimal import Decimal, InvalidOperation
 
-from rest_framework import viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework import status
 
 from apps.units.unit.models import Unit
+
+from .cost import calcular_custo_produto
 from .models import Product
 from .serializers import ProductSerializer
-from .services import scale_product, ScalingError
+from .services import (
+    ScalingError,
+    full_cost,
+    scale_product,
+)
 
-from .services import scale_product, ingredient_cost, full_cost, ScalingError
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.select_related(
@@ -85,7 +91,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         """
         GET /api/products/{id}/cost/?quantity=10&unit=8
 
-        Custo completo: insumos + energia + salário.
+        Custo completo de uma produção: insumos + energia + salário.
         """
         product = self.get_object()
 
@@ -115,10 +121,16 @@ class ProductViewSet(viewsets.ModelViewSet):
         try:
             result = full_cost(product, quantity, unit)
         except ScalingError as e:
-            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response(
+                {"detail": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         def _q(value, places="0.0001"):
-            return str(value.quantize(Decimal(places))) if value is not None else None
+            return (
+                str(value.quantize(Decimal(places)))
+                if value is not None else None
+            )
 
         return Response({
             "product": product.id,
@@ -151,3 +163,23 @@ class ProductViewSet(viewsets.ModelViewSet):
             } if result.labor else None,
             "grand_total": str(result.grand_total),
         })
+
+    @action(detail=True, methods=["get"], url_path="unit-cost")
+    def unit_cost(self, request, pk=None):
+        """
+        GET /api/products/{id}/unit-cost/?data=AAAA-MM-DD
+
+        Devolve o custo unitário do produto (1 unidade) e o
+        preço de venda sugerido, com markup e arredondamento.
+        """
+        produto = self.get_object()
+        data_str = request.query_params.get("data")
+        try:
+            data_ref = date.fromisoformat(data_str) if data_str else None
+        except ValueError:
+            return Response(
+                {"detail": "Parâmetro 'data' inválido. Use AAAA-MM-DD."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        resultado = calcular_custo_produto(produto, data_referencia=data_ref)
+        return Response(resultado)
