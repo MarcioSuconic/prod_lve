@@ -121,7 +121,7 @@ def scale_product(
                     food_ingredient=ingredient,
                     quantity=required_qty_in_ingredient_unit,
                     unit=target_ing_unit,
-                    unincorporated=step.unincorporated_ingredient,
+                    unincorporated=step.incorporation_percentage,
                 )
 
     return sorted(

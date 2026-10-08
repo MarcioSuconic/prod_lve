@@ -42,7 +42,9 @@ class BaseRecipeReplaceExecutionItemSerializer(serializers.ModelSerializer):
             "food_ingredient",
             "qtde_food_ingredient",
             "unidade_qtde_food_ingredient",
-            "unincorporated_ingredient",
+            "incorporation_percentage",
+            "temperature",           # ← NOVO
+            "pH",
             "execution_time",
             "elapsed_time",
             "machinery",

@@ -1,7 +1,11 @@
 # apps/products/product/views.py
+import re
 from datetime import date
 from decimal import Decimal, InvalidOperation
+from pathlib import Path
 
+from django.conf import settings
+from django.http import FileResponse
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -16,6 +20,7 @@ from .services import (
     full_cost,
     scale_product,
 )
+from .tech_sheet import _slug, gerar_ficha_tecnica
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -27,14 +32,11 @@ class ProductViewSet(viewsets.ModelViewSet):
     search_fields = ("product", "name_menu", "description_product")
     ordering_fields = ("product", "name_menu")
 
+    # ------------------------------------------------------------------
+    # /scale/ — lista de insumos para uma produção
+    # ------------------------------------------------------------------
     @action(detail=True, methods=["get"], url_path="scale")
     def scale(self, request, pk=None):
-        """
-        GET /api/products/{id}/scale/?quantity=10&unit=8
-
-        Retorna a lista de insumos necessários para produzir `quantity`
-        do produto, expressos na unidade padrão de cada insumo.
-        """
         product = self.get_object()
 
         try:
@@ -86,13 +88,11 @@ class ProductViewSet(viewsets.ModelViewSet):
             ],
         })
 
+    # ------------------------------------------------------------------
+    # /cost/ — custo completo de uma produção
+    # ------------------------------------------------------------------
     @action(detail=True, methods=["get"], url_path="cost")
     def cost(self, request, pk=None):
-        """
-        GET /api/products/{id}/cost/?quantity=10&unit=8
-
-        Custo completo de uma produção: insumos + energia + salário.
-        """
         product = self.get_object()
 
         try:
@@ -124,12 +124,6 @@ class ProductViewSet(viewsets.ModelViewSet):
             return Response(
                 {"detail": str(e)},
                 status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        def _q(value, places="0.0001"):
-            return (
-                str(value.quantize(Decimal(places)))
-                if value is not None else None
             )
 
         return Response({
@@ -164,14 +158,11 @@ class ProductViewSet(viewsets.ModelViewSet):
             "grand_total": str(result.grand_total),
         })
 
+    # ------------------------------------------------------------------
+    # /unit-cost/ — custo unitário + preço com markup
+    # ------------------------------------------------------------------
     @action(detail=True, methods=["get"], url_path="unit-cost")
     def unit_cost(self, request, pk=None):
-        """
-        GET /api/products/{id}/unit-cost/?data=AAAA-MM-DD
-
-        Devolve o custo unitário do produto (1 unidade) e o
-        preço de venda sugerido, com markup e arredondamento.
-        """
         produto = self.get_object()
         data_str = request.query_params.get("data")
         try:
@@ -183,3 +174,59 @@ class ProductViewSet(viewsets.ModelViewSet):
             )
         resultado = calcular_custo_produto(produto, data_referencia=data_ref)
         return Response(resultado)
+
+    # ------------------------------------------------------------------
+    # /tech-sheet/ (POST) — gera nova versão da ficha técnica
+    # ------------------------------------------------------------------
+    @action(detail=True, methods=["post"], url_path="tech-sheet")
+    def tech_sheet_generate(self, request, pk=None):
+        produto = self.get_object()
+        try:
+            info = gerar_ficha_tecnica(produto)
+        except Exception as e:
+            return Response(
+                {"detail": f"Erro ao gerar ficha: {e}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        return Response(info, status=status.HTTP_201_CREATED)
+
+    # ------------------------------------------------------------------
+    # /tech-sheet/ (GET) — baixa o PDF da ficha técnica
+    # ------------------------------------------------------------------
+    @action(detail=True, methods=["get"], url_path="tech-sheet/download")
+    def tech_sheet_download(self, request, pk=None):
+        produto = self.get_object()
+        pasta = Path(settings.MEDIA_ROOT) / "tech_sheets"
+        slug = _slug(produto.product)
+
+        version = request.query_params.get("version")
+        if version:
+            arquivo = pasta / f"{slug}_v{version}.pdf"
+        else:
+            existentes = []
+            if pasta.exists():
+                existentes = sorted(
+                    pasta.glob(f"{slug}_v*.pdf"),
+                    key=lambda p: int(
+                        re.search(r"_v(\d+)\.pdf$", p.name).group(1)
+                    ),
+                )
+            if not existentes:
+                return Response(
+                    {"detail": "Nenhuma ficha técnica gerada ainda."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            arquivo = existentes[-1]
+
+        if not arquivo.exists():
+            return Response(
+                {"detail": f"Arquivo {arquivo.name} não encontrado."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        return FileResponse(
+            open(arquivo, "rb"),
+            as_attachment=False,
+            filename=arquivo.name,
+            content_type="application/pdf",
+        )

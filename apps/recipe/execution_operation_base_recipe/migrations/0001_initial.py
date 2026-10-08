@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('description_execution', models.CharField(max_length=240, verbose_name='descrição da execução')),
                 ('qtde_food_ingredient', models.DecimalField(blank=True, decimal_places=3, max_digits=10, null=True, verbose_name='qtde insumo')),
-                ('unincorporated_ingredient', models.BooleanField(default=False, verbose_name='ingrediente não incorporado no peso total')),
+                ('incorporation_percentage', models.BooleanField(default=False, verbose_name='ingrediente não incorporado no peso total')),
                 ('elapsed_time', models.DurationField(verbose_name='tempo decorrido')),
                 ('base_recipe', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='base_recipe.baserecipe', verbose_name='receita base')),
                 ('food_ingredient', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to='food_ingredient.foodingredient', verbose_name='insumo')),

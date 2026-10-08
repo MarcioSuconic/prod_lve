@@ -10,6 +10,8 @@ from apps.recipe.operation_base_recipe.models import OperationBaseRecipe
 from apps.machinerys.machinery.models import Machinery
 from apps.utensils.utensil.models import Utensil
 
+from decimal import Decimal
+
 class ExecutionOperationBaseRecipe(models.Model):
     
     # receita base
@@ -67,9 +69,17 @@ class ExecutionOperationBaseRecipe(models.Model):
         blank=True,
         null=True,
     )
-    unincorporated_ingredient = models.BooleanField(
-        verbose_name="ingrediente não incorporado no peso total",
-        default=False,
+    
+    incorporation_percentage = models.DecimalField(
+        verbose_name="percentual de incorporação do insumo no produto",
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("100.00"),
+        help_text=(
+            "Quanto do insumo fica no produto final. "
+            "100 = tudo incorporado; 0 = nada (ex: água de cozimento descartada); "
+            "80 = 20% se perde no processo."
+        ),
     )
 
     # etapa da execução
@@ -85,6 +95,9 @@ class ExecutionOperationBaseRecipe(models.Model):
         on_delete=models.PROTECT,
         verbose_name="operação da execução",
     )
+    
+    temperature = models.DecimalField(verbose_name="temperatura", default=20.0, blank=False, null=False, decimal_places=2, max_digits=6)
+    pH = models.DecimalField(verbose_name="pH", default=7.00, blank=False, null=False, decimal_places=2, max_digits=5)
     
     execution_time = models.DurationField(
         verbose_name="tempo de execução (min)",
@@ -104,15 +117,18 @@ class ExecutionOperationBaseRecipe(models.Model):
         verbose_name_plural = "Execuções das Operações da receita base"  # era Processos
 
     def clean(self):
+        
         """
         Garante que os campos de insumo sejam preenchidos em conjunto.
         Ou os três estão preenchidos, ou nenhum está.
         """
+        
         insumo_preenchido = [
             self.food_ingredient is not None,
             self.qtde_food_ingredient is not None,
             self.unidade_qtde_food_ingredient is not None,
         ]
+        
         if any(insumo_preenchido) and not all(insumo_preenchido):
             raise ValidationError(
                 "Se um passo usa insumo, os três campos "

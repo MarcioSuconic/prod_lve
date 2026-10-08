@@ -214,7 +214,7 @@ class Command(BaseCommand):
                 "description_execution": p["desc"],
                 "qtde_food_ingredient": p["qtde"],
                 "unidade_qtde_food_ingredient": p["unit"],
-                "unincorporated_ingredient": False,
+                "incorporation_percentage": False,
                 "elapsed_time": timedelta(minutes=5),
                 "machinery": p["machinery"],
             }

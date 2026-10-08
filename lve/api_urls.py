@@ -45,7 +45,14 @@ from apps.productions.sub_product_production.views import (
 
 from apps.utensils.utensil.views import UtensilViewSet
 
+from apps.productions.production_input.views import ProductionInputViewSet
+
+from apps.audit.views import AuditViewSet
+
 router = DefaultRouter()
+
+# audit
+router.register("audit", AuditViewSet, basename="audit")
 
 # units
 router.register("physical-quantities", PhysicalQuantityViewSet, basename="physical-quantity")
@@ -114,6 +121,12 @@ router.register(
     "feedback-production-sub-products",
     FeedBackProductionSubProductsViewSet,
     basename="feedback-production-sub-product",
+)
+
+router.register(
+    "production-inputs",
+    ProductionInputViewSet,
+    basename="production-input",
 )
 
 urlpatterns = router.urls + [

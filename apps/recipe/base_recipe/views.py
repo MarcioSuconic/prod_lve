@@ -12,7 +12,7 @@ from .serializers import (
 )
 from .services import calcular_custo_receita
 
-
+from .services import calcular_balanco_massa
 class BaseRecipeViewSet(viewsets.ModelViewSet):
     queryset = BaseRecipe.objects.select_related("unit_size").all()
     serializer_class = BaseRecipeSerializer
@@ -72,5 +72,7 @@ class BaseRecipeViewSet(viewsets.ModelViewSet):
                 {"detail": "Parâmetro 'data' inválido. Use AAAA-MM-DD."},
                 status=400,
             )
+            
         resultado = calcular_custo_receita(receita, data_referencia=data_ref)
+        resultado["balanco"] = calcular_balanco_massa(receita, data_referencia=data_ref)
         return Response(resultado)

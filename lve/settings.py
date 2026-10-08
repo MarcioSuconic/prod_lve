@@ -46,6 +46,9 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "django_filters",
 
+    # audit
+    "apps.audit.apps.AuditConfig",
+
     # stories
     "apps.stories.store.apps.StoreConfig",
     "apps.stories.electric_power_x_store.apps.ElectricPowerXStoreConfig",
@@ -94,6 +97,7 @@ INSTALLED_APPS = [
     # productions
     "apps.productions.sub_product_production.apps.RegisterProductionSubProductsConfig",
     "apps.productions.product_production.apps.ProductProductionsConfig",
+    "apps.productions.production_input.apps.ProductionInputConfig",
     ]
 
 MIDDLEWARE = [
@@ -197,3 +201,9 @@ REST_FRAMEWORK = {
 # Chave primária padrão
 # ---------------------------------------------------------------------------
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# ---------------------------------------------------------------------------
+# Mídia (arquivos gerados pelo sistema)
+# ---------------------------------------------------------------------------
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"

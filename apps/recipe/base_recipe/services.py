@@ -258,3 +258,98 @@ def calcular_custo_receita(
         "custo_total": str(custo_total),
         "passos": passos,
     }
+    
+def calcular_balanco_massa(receita, data_referencia=None) -> dict:
+    """
+    Calcula o balanço de massa de uma receita.
+
+    Pra cada insumo da receita:
+      - converte a quantidade pra gramas (via densidade/porção)
+      - aplica incorporation_percentage
+      - soma
+
+    Compara com o size da receita.
+    """
+    from apps.food_ingredients.food_ingredient.services import convert
+    from apps.units.unit.services import convert_same_quantity
+
+    # Unidade de massa benchmark (g)
+    g_unit = Unit.objects.filter(
+        physical_quantity__slug="massa", is_benchmark=True,
+    ).first()
+    if g_unit is None:
+        return {"erro": "Unidade benchmark de massa (g) não encontrada."}
+
+    itens = []
+    erros = []
+    peso_input = Decimal("0")
+
+    for ex in receita.execucoes.select_related(
+        "food_ingredient", "unidade_qtde_food_ingredient",
+    ):
+        if not (ex.food_ingredient and ex.qtde_food_ingredient
+                and ex.unidade_qtde_food_ingredient):
+            continue
+
+        try:
+            qtde_em_g = convert(
+                quantity=ex.qtde_food_ingredient,
+                from_unit=ex.unidade_qtde_food_ingredient,
+                to_unit=g_unit,
+                food_ingredient=ex.food_ingredient,
+            )
+        except Exception as e:
+            erros.append(
+                f"{ex.food_ingredient}: {e}"
+            )
+            continue
+
+        pct = (ex.incorporation_percentage or Decimal("100")) / Decimal("100")
+        peso_efetivo = qtde_em_g * pct
+        peso_input += peso_efetivo
+
+        itens.append({
+            "insumo": ex.food_ingredient.food_ingredient,
+            "qtde_original": f"{ex.qtde_food_ingredient} {ex.unidade_qtde_food_ingredient.symbol}",
+            "qtde_em_g": str(qtde_em_g),
+            "incorporation_percentage": str(ex.incorporation_percentage),
+            "peso_efetivo_g": str(peso_efetivo),
+        })
+
+    # Converte o size pra gramas também
+    try:
+        size_em_g = convert_same_quantity(
+            receita.size, receita.unit_size, g_unit,
+        )
+    except Exception:
+        size_em_g = receita.size
+
+    diferenca = peso_input - size_em_g
+    diferenca_pct = (
+        (diferenca / peso_input * Decimal("100"))
+        if peso_input > 0 else Decimal("0")
+    )
+
+    # Classificação
+    if peso_input < size_em_g:
+        classificacao = "erro"  # input < output: impossível
+    elif diferenca_pct >= Decimal("-5"):
+        classificacao = "ok"
+    elif diferenca_pct >= Decimal("-15"):
+        classificacao = "atencao"
+    else:
+        classificacao = "suspeito"
+
+    return {
+        "receita": receita.base_recipe,
+        "receita_id": receita.id,
+        "size": str(receita.size),
+        "unit_size": receita.unit_size.symbol,
+        "size_em_g": str(size_em_g),
+        "peso_input_g": str(peso_input),
+        "diferenca_g": str(diferenca),
+        "diferenca_pct": str(diferenca_pct),
+        "classificacao": classificacao,
+        "itens": itens,
+        "erros": erros,
+    }
