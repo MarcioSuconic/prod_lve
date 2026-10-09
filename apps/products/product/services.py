@@ -366,3 +366,192 @@ def full_cost(
         labor=labor,
         grand_total=grand_total,
     )
+    
+# =========================================================================
+# Cronograma de produção (timing dos sub-produtos)
+# =========================================================================
+from datetime import datetime, timedelta as _td
+from decimal import Decimal as _Dec
+
+
+class ScheduleError(Exception):
+    """Erro no cálculo de cronograma."""
+
+
+def calcular_cronograma(
+    product_id: int,
+    data_inicio: datetime,
+) -> dict:
+    """
+    Calcula o cronograma de produção de um produto.
+
+    Cada vínculo (Product_x_Sub_Product) pode ter um timing:
+      - at_start=True   → referência é o início do sub-produto apontado
+      - at_finish=True  → referência é o fim do sub-produto apontado
+      - after_to=True   → referência é depois do fim do sub-produto
+      - nenhum          → referência é o início da produção
+
+    O `elapsed_time` é somado ou subtraído (conforme `elapsed_signal`)
+    do ponto de referência.
+    """
+    from apps.products.product_x_sub_product.models import (
+        Product_x_Sub_Product,
+    )
+    from apps.recipe.execution_operation_base_recipe.models import (
+        ExecutionOperationBaseRecipe,
+    )
+
+    vinculos = list(
+        Product_x_Sub_Product.objects
+        .filter(product_id=product_id, active=True)
+        .select_related(
+            "sub_product",
+            "sub_product__base_recipe",
+            "relative_to",
+            "relative_to__sub_product",
+        )
+    )
+
+    if not vinculos:
+        raise ScheduleError("Produto não tem sub-produtos ativos.")
+
+    # ---- 1. Duração de cada sub-produto ----
+    duracao_por_vinculo = {}
+    for v in vinculos:
+        receita = v.sub_product.base_recipe
+        execs = ExecutionOperationBaseRecipe.objects.filter(
+            base_recipe=receita,
+        )
+        if not execs.exists():
+            raise ScheduleError(
+                f"Sub-produto '{v.sub_product}' não tem execuções."
+            )
+        max_seg = 0
+        for ex in execs:
+            el = ex.elapsed_time.total_seconds()
+            et = ex.execution_time.total_seconds()
+            if el + et > max_seg:
+                max_seg = el + et
+        duracao_por_vinculo[v.id] = _td(seconds=max_seg)
+
+    # ---- 2. Valida ciclos ----
+    _validar_ciclos(vinculos)
+
+    # ---- 3. Ordena topologicamente ----
+    ordem = _topological_sort(vinculos)
+
+    # ---- 4. Calcula horários ----
+    horarios = {}
+
+    for v in ordem:
+        duracao = duracao_por_vinculo[v.id]
+
+        if v.at_start or v.at_finish or v.after_to:
+            if not v.relative_to:
+                raise ScheduleError(
+                    f"Vínculo {v} tem booleano ativo sem relative_to."
+                )
+            ref = horarios.get(v.relative_to.id)
+            if ref is None:
+                raise ScheduleError(
+                    f"Sub-produto '{v.sub_product}' depende de "
+                    f"'{v.relative_to.sub_product}', que não foi calculado."
+                )
+            if v.at_start:
+                ref_dt = ref["inicio"]
+            else:
+                # at_finish ou after_to → referência é o fim
+                ref_dt = ref["fim"]
+        else:
+            ref_dt = data_inicio
+
+        # Aplica elapsed_time com sinal
+        if v.elapsed_signal == "-":
+            ponto = ref_dt - v.elapsed_time
+        else:
+            ponto = ref_dt + v.elapsed_time
+
+        # Calcula início/fim
+        if v.at_finish:
+            fim = ponto
+            inicio = fim - duracao
+        else:
+            inicio = ponto
+            fim = inicio + duracao
+
+        horarios[v.id] = {"inicio": inicio, "fim": fim}
+
+    # ---- 5. Monta resposta ----
+    data_fim = max(h["fim"] for h in horarios.values())
+    duracao_total = data_fim - data_inicio
+
+    passos = []
+    for v in ordem:
+        h = horarios[v.id]
+        passos.append({
+            "sub_product": str(v.sub_product),
+            "sub_product_id": v.sub_product_id,
+            "duracao_h": str(
+                _Dec(str(duracao_por_vinculo[v.id].total_seconds()))
+                / _Dec("3600")
+            ),
+            "inicio": h["inicio"].isoformat(),
+            "fim": h["fim"].isoformat(),
+            "at_start": v.at_start,
+            "at_finish": v.at_finish,
+            "after_to": v.after_to,
+            "relative_to": (
+                str(v.relative_to.sub_product) if v.relative_to else None
+            ),
+            "elapsed_time": str(
+                _Dec(str(v.elapsed_time.total_seconds())) / _Dec("3600")
+            ),
+            "elapsed_signal": v.elapsed_signal,
+        })
+
+    return {
+        "product_id": product_id,
+        "data_inicio": data_inicio.isoformat(),
+        "data_fim": data_fim.isoformat(),
+        "duracao_total_h": str(
+            _Dec(str(duracao_total.total_seconds())) / _Dec("3600")
+        ),
+        "passos": passos,
+    }
+
+
+def _validar_ciclos(vinculos):
+    """Levanta ScheduleError se houver ciclo."""
+    mapa = {v.id: v for v in vinculos}
+    for v in vinculos:
+        visitados = set()
+        atual = v
+        while atual and atual.relative_to:
+            if atual.relative_to.id in visitados:
+                raise ScheduleError(
+                    f"Ciclo detectado envolvendo '{v.sub_product}'."
+                )
+            visitados.add(atual.id)
+            atual = mapa.get(atual.relative_to.id)
+
+
+def _topological_sort(vinculos):
+    """Ordena por dependência (sem dependência primeiro)."""
+    mapa = {v.id: v for v in vinculos}
+    ordenados = []
+    visitados = set()
+
+    def visitar(v):
+        if v.id in visitados:
+            return
+        if v.relative_to:
+            ref = mapa.get(v.relative_to.id)
+            if ref:
+                visitar(ref)
+        visitados.add(v.id)
+        ordenados.append(v)
+
+    for v in vinculos:
+        visitar(v)
+
+    return ordenados

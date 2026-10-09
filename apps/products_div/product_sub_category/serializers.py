@@ -13,6 +13,7 @@ class ProductSubCategorySerializer(serializers.ModelSerializer):
             "sub_category",
             "category",
             "category_name",
+            "markup_default",
             "description_menu",
             "active",
         )

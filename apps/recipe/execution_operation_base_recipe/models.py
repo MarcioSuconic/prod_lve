@@ -109,12 +109,11 @@ class ExecutionOperationBaseRecipe(models.Model):
         verbose_name="tempo decorrido",
         help_text="tempo em minutos",
     )
-
     class Meta:
         ordering = ["base_recipe", "stage_execution", "operation_execution"]
-        db_table = "lve_rec_execution_operation_base_recipe"          # era process
-        verbose_name = "Execução da Operação da receita base"          # era Processo
-        verbose_name_plural = "Execuções das Operações da receita base"  # era Processos
+        db_table = "lve_rec_execution_operation_base_recipe"
+        verbose_name = "Execução da Operação da receita base"
+        verbose_name_plural = "Execuções das Operações da receita base"
 
     def clean(self):
         

@@ -1,4 +1,4 @@
-#/home/marcio/Desktop/projetos/app_prod_lve/apps/recipe/base_recipe/serializers.py
+# apps/recipe/base_recipe/serializers.py
 from django.db import transaction
 from rest_framework import serializers
 
@@ -29,9 +29,7 @@ class BaseRecipeSerializer(serializers.ModelSerializer):
 
 class BaseRecipeReplaceExecutionItemSerializer(serializers.ModelSerializer):
     """
-    Item de execução dentro do replace ou do create. Não expõe nome/código
-    (só serve para escrita), e não aceita `base_recipe` — ele é injetado
-    pelo pai.
+    Item de execução dentro do replace ou do create.
     """
     class Meta:
         model = ExecutionOperationBaseRecipe
@@ -43,7 +41,7 @@ class BaseRecipeReplaceExecutionItemSerializer(serializers.ModelSerializer):
             "qtde_food_ingredient",
             "unidade_qtde_food_ingredient",
             "incorporation_percentage",
-            "temperature",           # ← NOVO
+            "temperature",
             "pH",
             "execution_time",
             "elapsed_time",
@@ -56,9 +54,12 @@ class BaseRecipeReplaceSerializer(serializers.ModelSerializer):
     """
     Cria ou substitui uma BaseRecipe e todas as suas execuções,
     em uma única transação.
+
+    No `create`, aceita `executions: []` (cria receita vazia).
+    No `update` (replace), exige pelo menos 1 execução.
     """
     executions = BaseRecipeReplaceExecutionItemSerializer(
-        many=True, write_only=True,
+        many=True, write_only=True, required=False, default=list,
     )
 
     class Meta:
@@ -75,7 +76,9 @@ class BaseRecipeReplaceSerializer(serializers.ModelSerializer):
         read_only_fields = ("id",)
 
     def validate_executions(self, value):
-        if not value:
+        # Só exige execuções quando é update (replace).
+        # No create, `executions: []` é permitido (receita vazia).
+        if self.instance is not None and not value:
             raise serializers.ValidationError(
                 "A receita precisa ter pelo menos uma execução."
             )
@@ -94,20 +97,21 @@ class BaseRecipeReplaceSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def update(self, instance, validated_data):
-        executions_data = validated_data.pop("executions", [])
+        executions_data = validated_data.pop("executions", None)
 
         for field, value in validated_data.items():
             setattr(instance, field, value)
         instance.save()
 
-        ExecutionOperationBaseRecipe.objects.filter(
-            base_recipe=instance,
-        ).delete()
-
-        for exec_data in executions_data:
-            ExecutionOperationBaseRecipe.objects.create(
+        # Se `executions` veio, substitui. Se não veio, mantém.
+        if executions_data is not None:
+            ExecutionOperationBaseRecipe.objects.filter(
                 base_recipe=instance,
-                **exec_data,
-            )
+            ).delete()
+            for exec_data in executions_data:
+                ExecutionOperationBaseRecipe.objects.create(
+                    base_recipe=instance,
+                    **exec_data,
+                )
 
         return instance

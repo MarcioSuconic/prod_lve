@@ -10,9 +10,9 @@ from .serializers import (
     BaseRecipeReplaceSerializer,
     BaseRecipeSerializer,
 )
-from .services import calcular_custo_receita
+from .services import calcular_balanco_massa, calcular_custo_receita
 
-from .services import calcular_balanco_massa
+
 class BaseRecipeViewSet(viewsets.ModelViewSet):
     queryset = BaseRecipe.objects.select_related("unit_size").all()
     serializer_class = BaseRecipeSerializer
@@ -21,20 +21,18 @@ class BaseRecipeViewSet(viewsets.ModelViewSet):
     ordering_fields = ("base_recipe", "size")
 
     def get_serializer_class(self):
-        """
-        - `create` e `replace-executions`: usam o serializer que aceita
-          `executions` embutidas (cabeçalho + passos).
-        - Todo o resto: serializer normal.
-        """
         if self.action in ("create", "replace_executions"):
             return BaseRecipeReplaceSerializer
         return BaseRecipeSerializer
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        # Garante que `executions` exista (mesmo vazio) no payload
+        data = request.data.copy()
+        if "executions" not in data:
+            data["executions"] = []
+        serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
-        # Devolve a receita com os dados do serializer padrão
         return Response(
             BaseRecipeSerializer(instance).data,
             status=201,
@@ -57,12 +55,6 @@ class BaseRecipeViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["get"], url_path="cost")
     def cost(self, request, pk=None):
-        """
-        GET /api/base-recipes/{id}/cost/?data=AAAA-MM-DD
-
-        Devolve o custo detalhado da receita (insumos + energia + mão de obra)
-        por passo e no total. Margem/preço ficam no cliente.
-        """
         receita = self.get_object()
         data_str = request.query_params.get("data")
         try:
@@ -72,7 +64,8 @@ class BaseRecipeViewSet(viewsets.ModelViewSet):
                 {"detail": "Parâmetro 'data' inválido. Use AAAA-MM-DD."},
                 status=400,
             )
-            
         resultado = calcular_custo_receita(receita, data_referencia=data_ref)
-        resultado["balanco"] = calcular_balanco_massa(receita, data_referencia=data_ref)
+        resultado["balanco"] = calcular_balanco_massa(
+            receita, data_referencia=data_ref,
+        )
         return Response(resultado)

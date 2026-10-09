@@ -21,7 +21,8 @@ from .services import (
     scale_product,
 )
 from .tech_sheet import _slug, gerar_ficha_tecnica
-
+from datetime import datetime
+from .services import ScheduleError, calcular_cronograma
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.select_related(
@@ -230,3 +231,33 @@ class ProductViewSet(viewsets.ModelViewSet):
             filename=arquivo.name,
             content_type="application/pdf",
         )
+        
+    @action(detail=True, methods=["get"], url_path="schedule")
+    def schedule(self, request, pk=None):
+        """
+        GET /api/products/{id}/schedule/?start=AAAA-MM-DDTHH:MM:SS
+
+        Calcula o cronograma de produção a partir de uma data/hora.
+        """
+        produto = self.get_object()
+        start_str = request.query_params.get("start")
+        if not start_str:
+            return Response(
+                {"start": "Informe a data/hora de início (formato ISO 8601)."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            data_inicio = datetime.fromisoformat(start_str)
+        except ValueError:
+            return Response(
+                {"start": "Formato inválido. Use AAAA-MM-DDTHH:MM:SS."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            resultado = calcular_cronograma(produto.id, data_inicio)
+        except ScheduleError as e:
+            return Response(
+                {"detail": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return Response(resultado)
