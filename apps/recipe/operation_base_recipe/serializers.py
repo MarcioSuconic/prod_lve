@@ -1,4 +1,4 @@
-#/home/marcio/Desktop/projetos/app_prod_lve/apps/recipe/operation_base_recipe/serializers.py
+# apps/recipe/operation_base_recipe/serializers.py
 from rest_framework import serializers
 
 from .models import OperationBaseRecipe
@@ -7,4 +7,10 @@ from .models import OperationBaseRecipe
 class OperationBaseRecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = OperationBaseRecipe
-        fields = ("id", "operation_base_recipe", "active")
+        fields = (
+            "id",
+            "operation_base_recipe",
+            "description",
+            "labor_minutes",
+            "active",
+        )

@@ -8,7 +8,8 @@ Estratégia:
      densidade e porção), multiplica pelo unit_price da compra.
   2. Custo de energia: para cada passo com maquinário, potência (kW) ×
      tempo (h) × tarifa (R$/kWh) vigente na data.
-  3. Custo de mão de obra: tempo (h) × salário/hora vigente na data.
+  3. Custo de mão de obra: usa o `labor_minutes` da OPERAÇÃO (não o tempo
+     do passo). Ex: forno ligado 60 min, mas só 1 min de mão de obra.
 
 Conversão de potência:
   O campo `Machinery.qtde_power` está na unidade `unit_power` (ex.: W, kW).
@@ -35,13 +36,12 @@ from .models import BaseRecipe
 
 
 # ---------------------------------------------------------------------------
-# Cache simples da unidade kW (evita query repetida dentro do mesmo cálculo)
+# Cache simples da unidade kW
 # ---------------------------------------------------------------------------
 _KW_CACHE = {"unit": None, "loaded": False}
 
 
 def _get_kw_unit():
-    """Devolve a Unit 'kW' (ou None se não existir)."""
     if not _KW_CACHE["loaded"]:
         _KW_CACHE["unit"] = Unit.objects.filter(symbol="kW").first()
         _KW_CACHE["loaded"] = True
@@ -49,19 +49,11 @@ def _get_kw_unit():
 
 
 def _potencia_em_kw(machinery) -> Decimal:
-    """
-    Converte a potência do maquinário para kW.
-
-    O campo `qtde_power` está na unidade `unit_power`. A tarifa é em R$/kWh,
-    então precisamos converter para kW. Usa a benchmark da grandeza
-    (potência → W) como ponte.
-    """
     if not machinery or not machinery.qtde_power:
         return Decimal("0")
 
     kw = _get_kw_unit()
     if kw is None:
-        # Sem unidade kW cadastrada: assume que qtde_power já está em kW
         return machinery.qtde_power
 
     return convert_same_quantity(
@@ -103,7 +95,6 @@ def _salario_hora(store, ref_date: date):
 
 
 def _horas(execution_time) -> Decimal:
-    """DurationField → horas (Decimal)."""
     if execution_time is None:
         return Decimal("0")
     segundos = execution_time.total_seconds()
@@ -111,10 +102,6 @@ def _horas(execution_time) -> Decimal:
 
 
 def _store_da_receita(receita):
-    """
-    Deriva a loja a partir do primeiro maquinário encontrado nas execuções.
-    Se a BaseRecipe tiver FK para Store no futuro, troque por receita.store.
-    """
     for ex in receita.execucoes.select_related("machinery__store"):
         if ex.machinery and ex.machinery.store_id:
             return ex.machinery.store
@@ -218,9 +205,17 @@ def calcular_custo_receita(
             custo_energia = potencia_kw * horas * tarifa.fare_amount_kwh
 
         # ---------- mão de obra ----------
+        # Usa o `labor_minutes` da OPERAÇÃO (não o tempo do passo)
+        labor_min = Decimal("0")
+        if ex.operation_execution:
+            labor_min = (
+                ex.operation_execution.labor_minutes or Decimal("0")
+            )
+
         custo_mao_obra = Decimal("0")
         if salario:
-            custo_mao_obra = horas * salario.average_hourly_wage
+            horas_labor = labor_min / Decimal("60")
+            custo_mao_obra = horas_labor * salario.average_hourly_wage
 
         total_insumos += custo_insumo
         total_energia += custo_energia
@@ -231,6 +226,7 @@ def calcular_custo_receita(
             "operacao": str(ex.operation_execution),
             "descricao": ex.description_execution,
             "tempo_h": str(horas),
+            "labor_min": str(labor_min),
             "maquinario": str(ex.machinery) if ex.machinery else None,
             "potencia_kw": str(potencia_kw),
             "insumo": detalhe_insumo,
@@ -258,7 +254,8 @@ def calcular_custo_receita(
         "custo_total": str(custo_total),
         "passos": passos,
     }
-    
+
+
 def calcular_balanco_massa(receita, data_referencia=None) -> dict:
     """
     Calcula o balanço de massa de uma receita.
@@ -273,7 +270,6 @@ def calcular_balanco_massa(receita, data_referencia=None) -> dict:
     from apps.food_ingredients.food_ingredient.services import convert
     from apps.units.unit.services import convert_same_quantity
 
-    # Unidade de massa benchmark (g)
     g_unit = Unit.objects.filter(
         physical_quantity__slug="massa", is_benchmark=True,
     ).first()
@@ -299,9 +295,7 @@ def calcular_balanco_massa(receita, data_referencia=None) -> dict:
                 food_ingredient=ex.food_ingredient,
             )
         except Exception as e:
-            erros.append(
-                f"{ex.food_ingredient}: {e}"
-            )
+            erros.append(f"{ex.food_ingredient}: {e}")
             continue
 
         pct = (ex.incorporation_percentage or Decimal("100")) / Decimal("100")
@@ -310,13 +304,15 @@ def calcular_balanco_massa(receita, data_referencia=None) -> dict:
 
         itens.append({
             "insumo": ex.food_ingredient.food_ingredient,
-            "qtde_original": f"{ex.qtde_food_ingredient} {ex.unidade_qtde_food_ingredient.symbol}",
+            "qtde_original": (
+                f"{ex.qtde_food_ingredient} "
+                f"{ex.unidade_qtde_food_ingredient.symbol}"
+            ),
             "qtde_em_g": str(qtde_em_g),
             "incorporation_percentage": str(ex.incorporation_percentage),
             "peso_efetivo_g": str(peso_efetivo),
         })
 
-    # Converte o size pra gramas também
     try:
         size_em_g = convert_same_quantity(
             receita.size, receita.unit_size, g_unit,
@@ -330,9 +326,8 @@ def calcular_balanco_massa(receita, data_referencia=None) -> dict:
         if peso_input > 0 else Decimal("0")
     )
 
-    # Classificação
     if peso_input < size_em_g:
-        classificacao = "erro"  # input < output: impossível
+        classificacao = "erro"
     elif diferenca_pct >= Decimal("-5"):
         classificacao = "ok"
     elif diferenca_pct >= Decimal("-15"):

@@ -39,7 +39,7 @@ class UtensilScheduling(models.Model):
     active = models.BooleanField(verbose_name="ativo", default=True)
 
     class Meta:
-        db_table = "lve_mac_utensil_scheduling"
+        db_table = "lve_ute_utensil_scheduling"
         verbose_name = "Agendamento de Utensílio"
         verbose_name_plural = "Agendamento de Utensílios"
         ordering = ["datetime_initial", "datetime_finish", "utensil"]

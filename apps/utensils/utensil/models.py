@@ -7,7 +7,7 @@ from apps.stories.store.models import Store
 
 class Utensil(models.Model):
     """
-    Maquinário para a feitura de produtos.
+    Utensílios para a feitura de produtos.
     """
 
     utensil = models.CharField(verbose_name="utensílios", max_length=96)
@@ -38,7 +38,7 @@ class Utensil(models.Model):
     active = models.BooleanField(verbose_name="ativo", default=True)
 
     class Meta:
-        db_table = "lve_mac_utensil"
+        db_table = "lve_ute_utensil"
         verbose_name = "Utensílio"
         verbose_name_plural = "Utensílios"
         ordering = ["utensil"]

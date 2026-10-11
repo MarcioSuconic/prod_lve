@@ -1,3 +1,4 @@
+#/home/marcio/Desktop/projetos/app_prod_lve/apps/machinerys/machinery/models.py
 from django.db import models
 
 from apps.units.unit.models import Unit

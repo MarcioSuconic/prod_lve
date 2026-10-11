@@ -1,3 +1,4 @@
+# apps/food_ingredients/food_ingredient/serializers.py
 from decimal import Decimal
 
 from django.db import transaction
@@ -97,8 +98,15 @@ class FoodIngredientSerializer(serializers.ModelSerializer):
         density_data = self._pop_density(validated_data)
         ingredient = FoodIngredient.objects.create(**validated_data)
         if density_data:
-            FoodIngredientDensity.objects.create(
-                food_ingredient=ingredient, **density_data,
+            FoodIngredientDensity.objects.update_or_create(
+                food_ingredient=ingredient,
+                reference_temperature_celsius=density_data["reference_temperature_celsius"],
+                date=density_data["date"],
+                defaults={
+                    "density": density_data["density"],
+                    "mass_unit": density_data["mass_unit"],
+                    "volume_unit": density_data["volume_unit"],
+                },
             )
         return ingredient
 
@@ -108,9 +116,17 @@ class FoodIngredientSerializer(serializers.ModelSerializer):
         for field, value in validated_data.items():
             setattr(instance, field, value)
         instance.save()
+
         if density_data:
-            FoodIngredientDensity.objects.create(
-                food_ingredient=instance, **density_data,
+            FoodIngredientDensity.objects.update_or_create(
+                food_ingredient=instance,
+                reference_temperature_celsius=density_data["reference_temperature_celsius"],
+                date=density_data["date"],
+                defaults={
+                    "density": density_data["density"],
+                    "mass_unit": density_data["mass_unit"],
+                    "volume_unit": density_data["volume_unit"],
+                },
             )
         return instance
 

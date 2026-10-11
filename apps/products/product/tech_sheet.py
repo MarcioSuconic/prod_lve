@@ -5,9 +5,6 @@ Geração de ficha técnica em PDF para um produto.
 O PDF é salvo em MEDIA_ROOT/tech_sheets/ com nome versionado:
     pao_de_queijo_v1.pdf
     pao_de_queijo_v2.pdf
-
-Cada geração cria uma nova versão. A versão é incrementada automaticamente
-com base nos arquivos já existentes na pasta.
 """
 
 import re
@@ -35,7 +32,6 @@ from .models import Product
 # Helpers
 # ---------------------------------------------------------------------------
 def _slug(texto: str) -> str:
-    """Converte 'Pão de Queijo' → 'pao_de_queijo'."""
     texto = texto.lower()
     substituicoes = {
         "á": "a", "à": "a", "ã": "a", "â": "a",
@@ -60,7 +56,6 @@ def _fmt(valor, casas=2) -> str:
 
 
 def _proxima_versao(produto: Product) -> int:
-    """Descobre a próxima versão livre olhando os arquivos existentes."""
     pasta = Path(settings.MEDIA_ROOT) / "tech_sheets"
     pasta.mkdir(parents=True, exist_ok=True)
     slug = _slug(produto.product)
@@ -85,7 +80,6 @@ def _caminho_pdf(produto: Product, versao: int) -> Path:
 # Coleta de dados auxiliares
 # ---------------------------------------------------------------------------
 def _coletar_passos(produto: Product) -> list[dict]:
-    """Coleta os passos (etapa/operação/tempo) dos sub-produtos do produto."""
     from apps.recipe.execution_operation_base_recipe.models import (
         ExecutionOperationBaseRecipe,
     )
@@ -110,30 +104,22 @@ def _coletar_passos(produto: Product) -> list[dict]:
         for ex in execs:
             seg = ex.execution_time.total_seconds() if ex.execution_time else 0
             horas = Decimal(str(seg)) / Decimal("3600")
+            labor_min = Decimal("0")
+            if ex.operation_execution:
+                labor_min = (
+                    ex.operation_execution.labor_minutes or Decimal("0")
+                )
             passos.append({
                 "etapa": str(ex.stage_execution),
                 "operacao": str(ex.operation_execution),
                 "descricao": ex.description_execution,
                 "tempo_h": str(horas),
+                "labor_min": str(labor_min),
             })
     return passos
 
 
 def _coletar_ingredientes_por_subproduto(produto: Product) -> dict:
-    """
-    Para cada sub-produto do produto, devolve a lista de insumos
-    da receita base, com quantidade, unidade e custo.
-
-    Retorna:
-        {
-            sub_product_id: [
-                {"insumo": "Polvilho", "qtde": "1.000", "unidade": "kg",
-                 "custo": "R$ 6,30"},
-                ...
-            ],
-            ...
-        }
-    """
     from apps.products.product_x_sub_product.models import (
         Product_x_Sub_Product,
     )
@@ -144,6 +130,7 @@ def _coletar_ingredientes_por_subproduto(produto: Product) -> dict:
         FoodIngredientPurchase,
     )
     from apps.food_ingredients.food_ingredient.services import convert
+    from apps.units.unit.models import Unit
 
     resultado = {}
 
@@ -152,6 +139,10 @@ def _coletar_ingredientes_por_subproduto(produto: Product) -> dict:
         .filter(product=produto, active=True)
         .select_related("sub_product", "sub_product__base_recipe")
     )
+
+    g_unit = Unit.objects.filter(
+        physical_quantity__slug="massa", is_benchmark=True,
+    ).first()
 
     for link in links:
         receita = link.sub_product.base_recipe
@@ -196,30 +187,25 @@ def _coletar_ingredientes_por_subproduto(produto: Product) -> dict:
                     custo_str = "—"
 
             peso_g = None
-            if qtde and unidade:
+            if qtde and unidade and g_unit:
                 try:
-                    from apps.units.unit.models import Unit
-                    from apps.food_ingredients.food_ingredient.services import convert as conv
-                    g_unit = Unit.objects.filter(
-                        physical_quantity__slug="massa", is_benchmark=True,
-                    ).first()
-                    if g_unit:
-                        peso_g = conv(
-                            quantity=qtde,
-                            from_unit=unidade,
-                            to_unit=g_unit,
-                            food_ingredient=insumo,
-                        )
+                    peso_g = convert(
+                        quantity=qtde,
+                        from_unit=unidade,
+                        to_unit=g_unit,
+                        food_ingredient=insumo,
+                    )
                 except Exception:
                     peso_g = None
-            
 
             itens.append({
                 "insumo": insumo.food_ingredient,
                 "qtde": _fmt(qtde, 3) if qtde else "—",
                 "unidade": unidade.symbol if unidade else "—",
-                "peso_g": _fmt(peso_g, 2) if peso_g else "—",                 # ← NOVO
-                "incorporation_percentage": _fmt(ex.incorporation_percentage, 2),  # ← NOVO
+                "peso_g": _fmt(peso_g, 2) if peso_g else "—",
+                "incorporation_percentage": _fmt(
+                    ex.incorporation_percentage, 2,
+                ),
                 "custo": custo_str,
             })
 
@@ -268,7 +254,7 @@ def _build_pdf(caminho: Path, produto: Product, custo: dict, versao: int):
     ))
     elementos.append(Spacer(1, 0.4 * cm))
 
-    # ---- Composição (com ingredientes por sub-produto) ----
+    # ---- Composição ----
     elementos.append(Paragraph("Composição", subtitulo))
 
     ingredientes_por_sub = _coletar_ingredientes_por_subproduto(produto)
@@ -288,7 +274,7 @@ def _build_pdf(caminho: Path, produto: Product, custo: dict, versao: int):
         elementos.append(Spacer(1, 0.2 * cm))
 
         itens = ingredientes_por_sub.get(s["sub_product_id"], [])
-        
+
         if itens:
             dados = [["Insumo", "Qtde", "Peso", "Incorp.", "Custo"]]
             for it in itens:
@@ -299,9 +285,10 @@ def _build_pdf(caminho: Path, produto: Product, custo: dict, versao: int):
                     it.get("incorporation_percentage", "100.00") + "%",
                     it["custo"],
                 ])
-                
-            t = Table(dados, colWidths=[6 * cm, 3 * cm, 2.5 * cm, 2 * cm, 3.5 * cm])
-            
+            t = Table(
+                dados,
+                colWidths=[6 * cm, 3 * cm, 2.5 * cm, 2 * cm, 3.5 * cm],
+            )
             t.setStyle(TableStyle([
                 ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#EEEEEE")),
                 ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
@@ -322,20 +309,26 @@ def _build_pdf(caminho: Path, produto: Product, custo: dict, versao: int):
 
     # ---- Modo de preparo ----
     elementos.append(Paragraph("Modo de preparo", subtitulo))
-    dados_prep = [["Etapa", "Operação", "Descrição", "Tempo"]]
+
+    dados_prep = [["Etapa", "Operação", "Descrição", "Execução", "M. obra"]]
     for p in custo.get("passos", []):
         dados_prep.append([
             p["etapa"],
             p["operacao"],
             p["descricao"],
             f'{_fmt(p["tempo_h"], 3)} h',
+            f'{_fmt(p.get("labor_min", 0), 2)} min',
         ])
+
     if len(dados_prep) > 1:
-        t = Table(dados_prep, colWidths=[3 * cm, 3 * cm, 8 * cm, 3 * cm])
+        t = Table(
+            dados_prep,
+            colWidths=[3 * cm, 3 * cm, 6.5 * cm, 2.5 * cm, 2.5 * cm],
+        )
         t.setStyle(TableStyle([
             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#DDDDDD")),
             ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-            ("FONTSIZE", (0, 0), (-1, -1), 9),
+            ("FONTSIZE", (0, 0), (-1, -1), 8),
             ("GRID", (0, 0), (-1, -1), 0.3, colors.HexColor("#999999")),
         ]))
         elementos.append(t)
@@ -381,12 +374,6 @@ def _build_pdf(caminho: Path, produto: Product, custo: dict, versao: int):
 # API principal
 # ---------------------------------------------------------------------------
 def gerar_ficha_tecnica(produto: Product, data_referencia=None) -> dict:
-    """
-    Gera o PDF da ficha técnica do produto.
-
-    Cria um arquivo versionado em MEDIA_ROOT/tech_sheets/.
-    Devolve metadados: caminho, versão, url relativa.
-    """
     custo = calcular_custo_produto(produto, data_referencia=data_referencia)
     custo["passos"] = _coletar_passos(produto)
 
