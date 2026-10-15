@@ -8,14 +8,10 @@ Estratégia:
      densidade e porção), multiplica pelo unit_price da compra.
   2. Custo de energia: para cada passo com maquinário, potência (kW) ×
      tempo (h) × tarifa (R$/kWh) vigente na data.
-  3. Custo de mão de obra: usa o `labor_minutes` da OPERAÇÃO (não o tempo
-     do passo). Ex: forno ligado 60 min, mas só 1 min de mão de obra.
-
-Conversão de potência:
-  O campo `Machinery.qtde_power` está na unidade `unit_power` (ex.: W, kW).
-  A tarifa é em R$/kWh, então convertemos a potência para kW antes de
-  multiplicar. A conversão usa `convert_same_quantity`, que passa pela
-  benchmark da grandeza (W, no caso de potência).
+  3. Custo de mão de obra: usa o `labor_minutes` da OPERAÇÃO.
+     - Se `labor_minutes` for NULL → usa o tempo do passo.
+     - Se for 0 → ninguém trabalha.
+     - Se for > 0 → tempo fixo.
 """
 
 from datetime import date
@@ -35,9 +31,6 @@ from apps.units.unit.services import convert_same_quantity
 from .models import BaseRecipe
 
 
-# ---------------------------------------------------------------------------
-# Cache simples da unidade kW
-# ---------------------------------------------------------------------------
 _KW_CACHE = {"unit": None, "loaded": False}
 
 
@@ -51,11 +44,9 @@ def _get_kw_unit():
 def _potencia_em_kw(machinery) -> Decimal:
     if not machinery or not machinery.qtde_power:
         return Decimal("0")
-
     kw = _get_kw_unit()
     if kw is None:
         return machinery.qtde_power
-
     return convert_same_quantity(
         quantity=machinery.qtde_power,
         from_unit=machinery.unit_power,
@@ -63,9 +54,6 @@ def _potencia_em_kw(machinery) -> Decimal:
     )
 
 
-# ---------------------------------------------------------------------------
-# Buscas auxiliares
-# ---------------------------------------------------------------------------
 def _ultima_compra(food_ingredient):
     return (
         FoodIngredientPurchase.objects
@@ -102,15 +90,37 @@ def _horas(execution_time) -> Decimal:
 
 
 def _store_da_receita(receita):
+    """
+    Deriva a loja a partir do primeiro maquinário encontrado nas execuções.
+    Se nenhum passo tem maquinário, cai no fallback: primeira loja ativa.
+    """
     for ex in receita.execucoes.select_related("machinery__store"):
         if ex.machinery and ex.machinery.store_id:
             return ex.machinery.store
-    return None
+
+    # Fallback: primeira loja ativa
+    from apps.stories.store.models import Store
+    return Store.objects.filter(active=True).first()
 
 
-# ---------------------------------------------------------------------------
-# Cálculo principal
-# ---------------------------------------------------------------------------
+def _labor_min_do_passo(ex, horas: Decimal) -> Decimal:
+    """
+    Calcula o tempo de mão de obra em minutos para um passo.
+
+    Regra:
+      - Se operation.labor_minutes for NULL → usa o tempo do passo (fallback)
+      - Se for 0 → zero absoluto
+      - Se for > 0 → tempo fixo
+    """
+    if not ex.operation_execution:
+        return horas * Decimal("60")
+
+    lm = ex.operation_execution.labor_minutes
+    if lm is None:
+        return horas * Decimal("60")
+    return lm
+
+
 def calcular_custo_receita(
     receita: BaseRecipe,
     data_referencia: date | None = None,
@@ -205,12 +215,7 @@ def calcular_custo_receita(
             custo_energia = potencia_kw * horas * tarifa.fare_amount_kwh
 
         # ---------- mão de obra ----------
-        # Usa o `labor_minutes` da OPERAÇÃO (não o tempo do passo)
-        labor_min = Decimal("0")
-        if ex.operation_execution:
-            labor_min = (
-                ex.operation_execution.labor_minutes or Decimal("0")
-            )
+        labor_min = _labor_min_do_passo(ex, horas)
 
         custo_mao_obra = Decimal("0")
         if salario:
@@ -243,6 +248,7 @@ def calcular_custo_receita(
         "size": str(receita.size),
         "unit_size": receita.unit_size.symbol,
         "data_referencia": data_ref.isoformat(),
+        "store": str(store) if store else None,
         "tarifa_energia": str(tarifa.fare_amount_kwh) if tarifa else None,
         "salario_hora": (
             str(salario.average_hourly_wage) if salario else None
@@ -259,13 +265,6 @@ def calcular_custo_receita(
 def calcular_balanco_massa(receita, data_referencia=None) -> dict:
     """
     Calcula o balanço de massa de uma receita.
-
-    Pra cada insumo da receita:
-      - converte a quantidade pra gramas (via densidade/porção)
-      - aplica incorporation_percentage
-      - soma
-
-    Compara com o size da receita.
     """
     from apps.food_ingredients.food_ingredient.services import convert
     from apps.units.unit.services import convert_same_quantity

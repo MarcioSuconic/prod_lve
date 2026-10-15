@@ -49,6 +49,13 @@ from apps.productions.production_input.views import ProductionInputViewSet
 
 from apps.audit.views import AuditViewSet
 
+from apps.productions.pending_production.views import (
+    PendingProductionViewSet,
+)
+from apps.productions.production_x_product.views import (
+    ProductionXProductViewSet,
+)
+
 router = DefaultRouter()
 
 # audit
@@ -127,6 +134,18 @@ router.register(
     "production-inputs",
     ProductionInputViewSet,
     basename="production-input",
+)
+
+# productions
+router.register(
+    "pending-productions",
+    PendingProductionViewSet,
+    basename="pending-production",
+)
+router.register(
+    "production-x-products",
+    ProductionXProductViewSet,
+    basename="production-x-product",
 )
 
 urlpatterns = router.urls + [

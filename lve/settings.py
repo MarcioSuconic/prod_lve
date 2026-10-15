@@ -98,6 +98,8 @@ INSTALLED_APPS = [
     "apps.productions.sub_product_production.apps.RegisterProductionSubProductsConfig",
     "apps.productions.product_production.apps.ProductProductionsConfig",
     "apps.productions.production_input.apps.ProductionInputConfig",
+    "apps.productions.pending_production.apps.PendingProductionConfig",
+    "apps.productions.production_x_product.apps.ProductionXProductConfig",
     ]
 
 MIDDLEWARE = [

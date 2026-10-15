@@ -17,6 +17,15 @@ class FoodIngredient(models.Model):
         _type_: _description_
     """
     food_ingredient = models.CharField(verbose_name="insumos", max_length=120, blank=False, null=False)
+    not_proportional = models.BooleanField(
+        verbose_name="não proporcional (múltiplo inteiro)",
+        default=False,
+        help_text=(
+            "Se True, o insumo só é usado em múltiplos inteiros "
+            "da qtde_default_shopping. "
+            "Ex: leite condensado (395g), ovo (1 un), doce de leite (395g)."
+        ),
+    )
     description = models.CharField(verbose_name="descrição minuciosa do insumo", max_length=600, blank=False, null=False)
     qtde_default_shopping = models.DecimalField(verbose_name="qtde padrão para compra", max_digits=8, decimal_places=2)
     unit = models.ForeignKey(Unit, verbose_name="unidade", on_delete=models.PROTECT, blank=False, null=False)

@@ -104,11 +104,14 @@ def _coletar_passos(produto: Product) -> list[dict]:
         for ex in execs:
             seg = ex.execution_time.total_seconds() if ex.execution_time else 0
             horas = Decimal(str(seg)) / Decimal("3600")
-            labor_min = Decimal("0")
+
+            # Regra de mão de obra
+            labor_min = horas * Decimal("60")   # fallback
             if ex.operation_execution:
-                labor_min = (
-                    ex.operation_execution.labor_minutes or Decimal("0")
-                )
+                lm = ex.operation_execution.labor_minutes
+                if lm is not None:
+                    labor_min = lm
+
             passos.append({
                 "etapa": str(ex.stage_execution),
                 "operacao": str(ex.operation_execution),
@@ -238,6 +241,21 @@ def _build_pdf(caminho: Path, produto: Product, custo: dict, versao: int):
     )
     normal = styles["Normal"]
 
+    # Estilo comum para tabelas (sem fundo colorido)
+    def _table_style(n_cols):
+        return TableStyle([
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTSIZE", (0, 0), (-1, -1), 8),
+            ("LINEBELOW", (0, 0), (-1, 0), 0.5, colors.HexColor("#999999")),
+            ("LINEBELOW", (0, 1), (-1, -2), 0.2, colors.HexColor("#DDDDDD")),
+            ("ALIGN", (1, 1), (-1, -1), "RIGHT"),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("TOPPADDING", (0, 0), (-1, -1), 3),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+            ("LEFTPADDING", (0, 0), (-1, -1), 4),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+        ])
+
     elementos = []
 
     # ---- Cabeçalho ----
@@ -289,15 +307,7 @@ def _build_pdf(caminho: Path, produto: Product, custo: dict, versao: int):
                 dados,
                 colWidths=[6 * cm, 3 * cm, 2.5 * cm, 2 * cm, 3.5 * cm],
             )
-            t.setStyle(TableStyle([
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#EEEEEE")),
-                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                ("FONTSIZE", (0, 0), (-1, -1), 8),
-                ("GRID", (0, 0), (-1, -1), 0.3, colors.HexColor("#BBBBBB")),
-                ("ALIGN", (1, 1), (-1, -1), "RIGHT"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 4),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 4),
-            ]))
+            t.setStyle(_table_style(5))
             elementos.append(t)
         else:
             elementos.append(Paragraph(
@@ -307,36 +317,37 @@ def _build_pdf(caminho: Path, produto: Product, custo: dict, versao: int):
 
         elementos.append(Spacer(1, 0.4 * cm))
 
-    # ---- Modo de preparo ----
-    elementos.append(Paragraph("Modo de preparo", subtitulo))
+        # ---- Modo de preparo ----
+        elementos.append(Paragraph("Modo de preparo", subtitulo))
 
-    dados_prep = [["Etapa", "Operação", "Descrição", "Execução", "M. obra"]]
-    for p in custo.get("passos", []):
-        dados_prep.append([
-            p["etapa"],
-            p["operacao"],
-            p["descricao"],
-            f'{_fmt(p["tempo_h"], 3)} h',
-            f'{_fmt(p.get("labor_min", 0), 2)} min',
-        ])
-
-    if len(dados_prep) > 1:
-        t = Table(
-            dados_prep,
-            colWidths=[3 * cm, 3 * cm, 6.5 * cm, 2.5 * cm, 2.5 * cm],
+        normal_small = ParagraphStyle(
+            "NormalSmall", parent=normal, fontSize=8,
+            leading=10,  # altura da linha
         )
-        t.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#DDDDDD")),
-            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-            ("FONTSIZE", (0, 0), (-1, -1), 8),
-            ("GRID", (0, 0), (-1, -1), 0.3, colors.HexColor("#999999")),
-        ]))
-        elementos.append(t)
-    else:
-        elementos.append(Paragraph(
-            "<i>Modo de preparo não disponível.</i>", normal,
-        ))
-    elementos.append(Spacer(1, 0.4 * cm))
+
+        dados_prep = [["Etapa", "Operação", "Descrição", "Execução", "M. obra"]]
+        for p in custo.get("passos", []):
+            dados_prep.append([
+                p["etapa"],
+                p["operacao"],
+                Paragraph(p["descricao"] or "—", normal_small),  # ← quebra linha
+                f'{_fmt(p["tempo_h"], 3)} h',
+                f'{_fmt(p.get("labor_min", 0), 2)} min',
+            ])
+
+        if len(dados_prep) > 1:
+            t = Table(
+                dados_prep,
+                colWidths=[2.5 * cm, 2.5 * cm, 6.5 * cm, 2.5 * cm, 2.5 * cm],
+                rowHeights=None,  # deixa o reportlab calcular
+            )
+            t.setStyle(_table_style(5))
+            elementos.append(t)
+        else:
+            elementos.append(Paragraph(
+                "<i>Modo de preparo não disponível.</i>", normal,
+            ))
+        elementos.append(Spacer(1, 0.4 * cm))
 
     # ---- Custo ----
     elementos.append(Paragraph("Custo", subtitulo))
@@ -347,20 +358,14 @@ def _build_pdf(caminho: Path, produto: Product, custo: dict, versao: int):
         ["Preço bruto", f"R$ {_fmt(custo['preco_bruto'])}"],
     ]
     t = Table(dados_custo, colWidths=[10 * cm, 7 * cm])
-    t.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#DDDDDD")),
-        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-        ("FONTSIZE", (0, 0), (-1, -1), 10),
-        ("GRID", (0, 0), (-1, -1), 0.3, colors.HexColor("#999999")),
-        ("ALIGN", (1, 1), (1, -1), "RIGHT"),
-    ]))
+    t.setStyle(_table_style(2))
     elementos.append(t)
     elementos.append(Spacer(1, 0.3 * cm))
 
     # ---- Preço final ----
     preco_style = ParagraphStyle(
-        "Preco", parent=styles["Heading1"], fontSize=18,
-        textColor=colors.HexColor("#0B6E4F"), alignment=1,
+        "Preco", parent=styles["Heading1"], fontSize=12,
+        textColor=colors.black, alignment=1,
     )
     elementos.append(Paragraph(
         f"PREÇO DE VENDA: R$ {_fmt(custo['preco_sugerido'])}",

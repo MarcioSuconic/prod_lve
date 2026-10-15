@@ -55,6 +55,7 @@ class ExecutionOperationBaseRecipe(models.Model):
         null=True,
         on_delete=models.PROTECT,
     )
+    
     qtde_food_ingredient = models.DecimalField(
         verbose_name="qtde insumo",
         max_digits=10,
@@ -62,12 +63,25 @@ class ExecutionOperationBaseRecipe(models.Model):
         blank=True,
         null=True,
     )
+    
     unidade_qtde_food_ingredient = models.ForeignKey(
         Unit,
         verbose_name="unidade da qtde de insumo",
         on_delete=models.PROTECT,
         blank=True,
         null=True,
+    )
+    
+    not_proportional_override = models.BooleanField(
+        verbose_name="sobrescrever regra de proporcionalidade do insumo",
+        null=True,
+        blank=True,
+        default=None,
+        help_text=(
+            "Vazio = usa a regra do insumo. "
+            "True = força não-proporcional. "
+            "False = força proporcional."
+        ),
     )
     
     incorporation_percentage = models.DecimalField(
